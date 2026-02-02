@@ -11,6 +11,18 @@ func main() {
 
 	i := Stack[int]{}
 
+	// TypeOf assertion
+	var v any = 123
+	if s, ok := v.(int); ok {
+		fmt.Println(ok)
+		fmt.Println("s is ", s)
+	}
+	var v1 any = "123"
+	if s, ok := v1.(int); ok {
+		fmt.Println(ok)
+		fmt.Println("s is ", s)
+	}
+
 	i.push(1)
 	i.push(2)
 	i.push(3)
@@ -84,6 +96,7 @@ func (s *Stack[T]) printAll() {
 
 func myPrint(i ...any) {
 	for _, v := range i {
+		// TypeOf via switch
 		switch v.(type) {
 		case int:
 			fmt.Println("The type of ", v, " is int")

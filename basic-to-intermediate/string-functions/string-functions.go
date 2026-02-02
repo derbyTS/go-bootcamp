@@ -28,6 +28,7 @@ func main() {
 
 	num := 16
 	var str1 string = strconv.Itoa(num)
+	// TypeOf
 	fmt.Printf("%T\n", str1)
 	fmt.Println(reflect.TypeOf(str1))
 

@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+
+	"structs/tax"
 )
 
 func main() {
@@ -45,6 +47,12 @@ func main() {
 	p.changeCity("Bacoor")
 	fmt.Println(p)
 	fmt.Println(p.address)
+
+	// Tax
+	calc := tax.NewCalculator(12.0, 5.0)
+	fmt.Printf("%+v\n", calc)
+	finalPrice := calc.Total(100.0)
+	fmt.Println(finalPrice)
 }
 
 func (p Person) fullName() string {
