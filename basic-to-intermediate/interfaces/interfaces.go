@@ -23,8 +23,7 @@ func main() {
 	fmt.Println(getGeometry("rectangle", 10, 10).area())
 	fmt.Println(getGeometry("rectangle", 10, 10).perimeter())
 	fmt.Println("circle ....................")
-	fmt.Println(getGeometry("circle", 10, 0))
-	fmt.Println(getGeometry("rectangle", 10, 0).area())
+	fmt.Println(getGeometry("circle", 10, 0).area())
 	fmt.Println(getGeometry("rectangle", 10, 0).perimeter())
 	cir := getGeometry("rectangle", 10, 0)
 	fmt.Println(cir)
@@ -46,6 +45,7 @@ type circle struct {
 	radius float64
 }
 
+// func (r *rectangle) area() float64 {
 func (r rectangle) area() float64 {
 	return r.length * r.width
 }
@@ -72,7 +72,7 @@ func getGeometry(kind string, a, b float64) geometry {
 	case "rectangle":
 		return rectangle{width: a, length: b}
 	case "circle":
-		return rectangle{width: a, length: b}
+		return circle{radius: a}
 	default:
 		return nil
 	}

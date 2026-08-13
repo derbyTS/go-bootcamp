@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-
 	"structs/tax"
 )
 
@@ -59,6 +58,7 @@ func (p Person) fullName() string {
 	return p.firstName + " " + p.lastName
 }
 
+// Embedded struct
 type Person struct {
 	firstName string
 	lastName  string
