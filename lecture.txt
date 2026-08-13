@@ -1,0 +1,372 @@
+https://www.udemy.com/course/gobootcampwithgrpcandprotocolbuffers
+15 sections • 328 lectures • 96h 31m total length
+
+Section 1: Getting Started & Development Setup
+	Greetings and Welcome!	1:51
+	Some tips while using this course	1:00
+	Course Content	2:34
+	About Go Language	2:52
+	Why choose Go?	4:47
+	Go Playground	4:47
+	Installing Go on Linux	4:14
+	Installing Go on Windows	1:03
+	Installing Go on Mac	1:59
+	IDE/Code Editor	4:17
+	Installing VS Code on Linux	5:07
+	Installing VS Code on Windows	1:11
+	Installing VS Code on Mac	1:14
+	Setting Up Development environment: Extensions	3:12
+	Resources	0:01
+
+Section 2: Version Control (Git & GitHub)
+	What is Git? What is VCS?	2:04
+	Installing Git on Linux	1:17
+	Installing Git on Windows	2:10
+	Installing Git on Mac	0:18
+	Github	5:10
+	Github and Git : SSH	12:57
+	git init	9:06
+	git add	5:49
+	git commit	3:03
+	git remote	4:41
+	git push	7:47
+
+Section 3: Go Fundamentals
+	Course Setup	2:16
+	Important Note	4:21
+	Hello World!	9:36
+	Go Run	2:46
+	Go Compiler	12:54
+	The Standard Libary	3:06
+	Import statement	12:51
+	Data Types	4:59
+	Variables	14:49
+	Naming Conventions	11:08
+	Constants	13:40
+	Arithmetic Operations	22:20
+	Loop: For (break continue)	27:06
+	Loop: For (using as while)	21:25
+	Operators	6:50
+	Conditions: If else	20:06
+	Conditions: Switch	25:20
+	Arrays and Blank Identifier	31:08
+	Slices	32:04
+	Maps	27:21
+	Range	7:39
+	Functions	21:39
+	Multiple Return Values	18:15
+	Variadic functions	19:14
+	Defer	11:15
+	Panic	10:41
+	Recover	16:05
+	Exit	5:41
+	Init function	6:24
+	Basics Quiz
+	Section Summary and Motivation	9:30
+
+Section 4: Intermediate Go Concepts & Standard Library
+	Closures	20:55
+	Recursion	13:05
+	Pointers	20:22
+	Strings and Runes	48:59
+	Formatting Verbs	24:50
+	Fmt package	31:32
+	Structs	33:06
+	Methods	20:17
+	Interfaces	37:32
+	Struct Embedding	13:08
+	Generics	28:36
+	Intermediate Quiz 1
+	Errors	26:28
+	Custom Errors	18:21
+	String Functions	41:49
+	String Formatting	12:36
+	Text Templates	56:39
+	Regular Expressions	25:56
+	Time	39:30
+	Epoch	9:51
+	Time Formatting / Parsing	9:57
+	Random Numbers	30:15
+	Number Parsing	15:33
+	Intermediate Quiz 2
+	URL Parsing	20:10
+	bufio package	48:00
+	Base64 Coding	17:04
+	SHA 256/512 Hashes / Hashing / Cryptography / Crypto Package	53:55
+	Writing Files	13:41
+	Reading Files	26:12
+	Line Filters	15:48
+	File Paths	24:27
+	Directories	43:47
+	Temporary Files and Directories	18:36
+	Embed Directive	23:46
+	Intermediate Quiz 3
+	Command Line Arguments/Flags	20:17
+	Command Line Sub Commands	22:10
+	Environment Variables	21:30
+	Logging	44:16
+	JSON	46:50
+	Struct Tags	14:01
+	XML	42:18
+	Go Extension	10:08
+	Type Conversions	18:30
+	IO package	1:02:33
+	Math package	4:50
+	Math package (Code Examples)	1:21
+	Intermediate Quiz 4
+	Section Summary and Motivation	6:00
+
+Section 5: Advanced Go & Concurrency Basics
+	Goroutines	42:45
+	Channels - Introduction	32:59
+	Unbuffered Channels and Runtime Mechanism	21:45
+	Buffered Channels	39:30
+	Channel Synchronization	39:51
+	Advanced Quiz 1
+	Channel Directions	11:07
+	Multiplexing using Select	30:39
+	Non blocking channel operations	14:07
+	Closing Channels	18:51
+	Advanced Quiz 2
+	Context	1:03:17
+	Timers	26:10
+	Tickers	22:05
+	Worker Pools	27:24
+	Wait Groups	52:08
+	Advanced Quiz 3
+	Mutexes	45:20
+	Atomic Counters	23:34
+	Rate Limiting	5:23
+	Rate Limiting - Token Bucket Algorithm	33:09
+	Rate Limiting - Fixed Window Counter	18:54
+	Rate Limiting - Leaky Bucket Algorithm	51:21
+	Stateful Goroutines	14:13
+	Sorting	47:22
+	Advanced Quiz 4
+	Testing / Benchmarking	46:26
+	Executing Processes / OS Processes / Other Processes	24:30
+	Signals	46:36
+	Reflect	36:27
+	Advanced Quiz 5
+	Section Summary and Congratulations	4:26
+
+Section 6: Deep Dive Concurrency
+	Concurrency vs Parallelism	18:24
+	Race Conditions	8:40
+	Deadlocks	15:51
+	RWMutex	12:57
+	sync.NewCond	45:15
+	sync.Once	5:12
+	sync.Pool	26:13
+	for select statement	4:38
+	Advanced Concurrency Quiz
+
+Section 7: Web & HTTP Fundamentals
+	URL/URI	20:25
+	Request Response Cycle	12:36
+	What is Frontend Dev/ Client Side	6:27
+	What is Backend Dev/ API / Server Side	3:21
+	HTTP 1/2/3, HTTPS	6:00
+	Internet Quiz
+
+Section 8: Building REST APIs in Go
+	OS Choice for Development	1:53
+	What is REST API	8:37
+	Endpoints	6:27
+	HTTP Client	9:06
+	HTTP Server	15:39
+	Ports	16:44
+	Postman for API Testing	10:50
+	Install wrk (Benchmarking Tool)	3:00
+	Install Htop	4:01
+	Benchmarking an API	36:12
+	Modules - go mod init	14:22
+	Let's begin making the API/Server	5:23
+	Downloading Third Party/External Packages - go get <package link>	12:15
+	Let's add HTTP2 and HTTPS to our API	13:47
+	https certificates - SSL/TLS	9:54
+	Postman for TLS + HTTP2 Requests	9:51
+	Using Curl to make http2 request	15:54
+	HTTP2/HTTPS/HTTP Connections, TLS Handshake	20:03
+	mTLS and Postman Settings	21:30
+	Benchmarking HTTP1 vs HTTP2 -H2Load BM Tool	26:48
+	Serialization/Deserialization - Marshal/Unmarshal - Encode/Decode	15:30
+	API Folder Structure	8:43
+	API Planning Stage	13:14
+	Basic Routing-CRUD-HTTP Methods	22:53
+	Processing Requests	41:46
+	Path Params	11:43
+	Query Params	12:57
+	.gitignore file	9:09
+	Multiplexer (mux)	12:08
+	Middlewares	6:48
+	Middlewares - Security Headers	25:47
+	Middlewares - CORS	20:03
+	Middlewares - Response Time	26:10
+	Middlewares - Compression	19:11
+	Middlewares - Rate Limiter	15:30
+	Middlewares - HPP	34:38
+	Middlewares - Ordering	15:24
+	Efficient Middleware Chaining	7:49
+	Older Routing Technique (Pre Go 1.22)	1:17
+	Getting All/Filtered/One Entry(ies) - GET	30:21
+	Adding Single Entry/Multiple Entries - POST	18:51
+	Handlers Refactoring	13:29
+	MariaDB/MySQL - Introduction	8:26
+	MariaDB Installation	9:48
+	MariaDB GUI Tool - DBeaver Installation	6:12
+	SQL Primer - CRUD - Command Line	24:36
+	SQL Primer - CRUD - DBeaver	30:03
+	Connect API to SQL	13:38
+	Environment Variables (.env file)	15:45
+	Creating our SQL Database	7:14
+	Updating POST methods to post in Database	12:08
+	Updating GET method to Fetch One Entry from Database	6:58
+	Updating GET method to Fetch Multiple Entries from Database	14:37
+	WHERE 1=1. WHY???	4:47
+	Advanced Filtering Technique - GET - Getting Entries Based on Multiple Criteria	6:18
+	Advanced Sort Order Technique - GET - Get Entries Based on Multiple Criteria	17:20
+	Updating a 'Complete Entry' - PUT	21:30
+	Modifying An Entry - PATCH	8:45
+	Improving our PATCH function - Reflect Package	22:26
+	Deleting An Entry - DELETE	11:25
+	Modernizing Routes - Older Routing Technique and its Limitations	15:12
+	Refactoring Mux	2:16
+	Using Path Params for Specific Entry	5:04
+	Modifying Multiple Entries - PATCH	36:45
+	Deleting Multiple Entries - DELETE	18:55
+	Modelling Data	7:11
+	Refactoring Database Operations	29:10
+	Error Handling	21:10
+	Struct Tags	26:30
+	Data Validation	44:10
+	Students Database Creation	9:54
+	CRUD for Students Route	20:17
+	Students Routes and Testing	18:20
+	New Subroutes	2:18
+	Getting Student List for a Specific Teacher	13:38
+	Getting Student Count for a Specific Teacher	11:07
+	Router Refactoring	8:00
+	Execs Router	10:16
+	Execs Model and Database Table	15:50
+	CRUD for Execs Route	36:03
+	Passwords - Hashing	16:29
+	Authorization and Authentication	4:14
+	Cookies, Sessions and JWT	6:09
+	Login Route Part 1 - Data Validation	10:37
+	Login Route Part 2 - Password Hashing - Argon2	13:25
+	Login Route Part 3 - JWT, Cookie	31:32
+	Login Route Refactoring	13:05
+	Logout	5:45
+	Authentication Middleware - JWT	27:39
+	Skipping Routes With Middlewares - PreLogin	10:26
+	Update Password	32:37
+	Sending Emails - MailHog	11:46
+	Forgot Password	36:36
+	Reset Password	30:42
+	CSRF	5:10
+	Adding Pagination	16:20
+	Data Sanitization - XSS Middleware	55:27
+	Authorization	9:15
+	Middleware Sequence Revisited	7:47
+	Code Obfuscation	5:10
+	Adjustments Before Final Binary	11:45
+	API Binary	28:47
+	Extensive Benchmarking - Source Code v/s Go Binary v/s Obfuscated	33:21
+	Section Summary and Motivation	5:51
+	
+Section 9: Protocol Buffers
+	What are Protocol Buffers?	5:49
+	Syntax and Structure of .proto Files	3:51
+	Packages in Protocol Buffers	3:54
+	Messages in Protocol Buffers	3:05
+	Fields in Protocol Buffers	1:44
+	Field Types and Data Types	5:37
+	Field Numbers	2:58
+	Serialization and Deserialization	3:45
+	RPC (Remote Procedure Call) in Protocol Buffers	2:04
+	Versioning and Backward Compatibility	3:25
+	Best Practices for .proto Files	2:13
+	Installing Protoc Compiler to Generate Code from .proto Files	10:02
+	Protocol Buffers in Practice	57:51
+	Protocol Buffers Quiz
+
+Section 10: gRPC
+	What is gRPC?	4:53
+	Stubs	3:12
+	What is Service?	4:22
+	REST vs gRPC	8:00
+	Creating Simple gRPC Server	32:50
+	Creating a Simple gRPC Client	17:46
+	gRPC + TLS	9:45
+	Deep Dive - Proto Buf Packages + RPC	1:04:16
+	gRPC Streaming	1:32
+	Server Side Stream	20:21
+	Client Side Stream	17:15
+	BiDirectional Stream	33:35
+	Advanced gRPC Features	8:04
+	Metadata, Headers and Trailers	20:43
+	Postman for gRPC	23:55
+	gRPCurl for gRPC	10:56
+	Protoc Gen Validate Plugin	22:23
+	Combo API (gRPC + REST functionality in One API)	41:06
+	Benchmarking Combo API - GHZ BM Tool	41:06
+	gRPC Quiz
+
+Section 11: MongoDB & Microservices Project
+	Intro	0:53
+	MongoDB and NoSQL - Introduction	14:30
+	MongoDB - Installation	8:50
+	MongoDB Compass - GUI for MongoDB	9:00
+	MongoDB Primer - CRUD	23:00
+	gRPC API Folder Structure and Project Requirements	5:28
+	Creating Proto files based on our REST API routes	36:36
+	Creating Project's gRPC Server	8:01
+	Downloading Known Required Dependencies	2:03
+	Connect API to MongoDB	8:12
+	Error Handling	3:51
+	Adding New Teacher(s)	47:13
+	Refactoring	13:01
+	Getting Teacher(s) - Filter	30:09
+	Getting Teacher(s) - Sorting	15:00
+	Getting Teacher(s) - Finalizing	36:36
+	Interfaces - Common Filter for all Get RPCs	16:05
+	Decode Function	7:50
+	Generics - Common Decode for all Get Functions	23:20
+	Modifying Teacher(s)	20:14
+	Generics - Mapping Helpers - Refactored	19:32
+	Deleting Teacher(s)	19:04
+	Adding New Student(s) and Exec(s)	28:58
+	Getting Student(s) and Exec(s)	17:12
+	Modifying Student(s) and Exec(s)	14:26
+	Deleting Student(s) and Exec(s)	8:02
+	Relationships in NoSQL (MongoDB)	4:26
+	Getting Students By Teacher - RPC	13:56
+	Getting Student Count By Teacher - RPC	11:33
+	Login RPC	12:18
+	Update Password RPC	17:35
+	Deactivate User RPC	14:17
+	Forgot Password RPC	31:11
+	Reset Password RPC	17:57
+	Response Time Interceptor	12:00
+	Rate Limiting Interceptor	9:04
+	Authentication Interceptor	28:51
+	Logout RPC	34:42
+	Authorization	6:19
+	gRPC Advantage - No need for HPP, Sanitize, Compression, HTTP Headers, CORS	1:00
+	Interceptor Sequence	1:41
+	Data Validation using Protoc Gen Validate	15:32
+	TLS/SSL + gRPC	6:35
+	Code Obfuscation and API Binary	13:51
+	Benchmarking	19:54
+
+Section 12: Course Resources
+	Resources	0:01
+
+Section 13: Interview Preparation
+	Interview Questions and Answers	2:29:06
+
+Section 14: Conclusion & Next Steps
+	What we learnt.	4:20
+	Where to go from here?	9:57
+	Good Bye and Good Luck!	3:36
