@@ -36,3 +36,5 @@ go.work.sum
 # Go coverage
 coverage.out
 
+#env file
+*.env
