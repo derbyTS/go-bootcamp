@@ -1,9 +1,16 @@
 package main
 
 import (
+	"cmp"
 	"fmt"
+	"slices"
 	"sort"
 )
+
+type Person0 struct {
+	Name string
+	Age  int
+}
 
 type Person struct {
 	Name string
@@ -70,6 +77,24 @@ func (by By) Sort(people []Person) {
 // }
 
 func main() {
+	//===================== This is what happen after 1.21 Generics ==============================
+
+	people0 := []Person0{
+		{"Alice", 30},
+		{"Bob", 25},
+	}
+
+	fmt.Println("Unsorted by age: ", people0)
+
+	slices.SortFunc(people0, func(a, b Person0) int {
+		return cmp.Compare(a.Age, b.Age)
+	})
+
+	fmt.Println("Unsorted by age: ", people0)
+	fmt.Println("Sorted by age: ", people0)
+
+	//===================== This is the old way ==============================
+
 	people := []Person{
 		{"Alice", 32},
 		{"Catherine", 31},
