@@ -1,46 +1,55 @@
 # macOS
-.DS_Store
+
+.DS*Store
 .AppleDouble
 .LSOverride
 Icon?
-._*
+.*\*
 
 # Go build
+
 /bin/
 /build/
 /dist/
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
-# *.test
-*.out
+_.exe
+_.exe~
+_.dll
+_.so
+\*.dylib
+
+# \*.test
+
+\*.out
 
 # Go workspace files
+
 go.work
 go.work.sum
 
 # Generated binaries
-*.a
+
+\*.a
 
 # Logs
-*.log
+
+\*.log
 
 # IDE / Editor
+
 .vscode/
 .idea/
-*.swp
-*.swo
+_.swp
+_.swo
 
 # Go coverage
+
 coverage.out
 
 #env file
-*.env
+\*.env
 
 #keys
-*.pem
+\*.pem
 
 #promt
 prompt.md
