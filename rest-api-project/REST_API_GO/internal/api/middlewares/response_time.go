@@ -11,7 +11,7 @@ func ResponseTimeMiddleware(next http.Handler) http.Handler {
 		fmt.Println("Received request in ResponseTime")
 		start := time.Now()
 
-		// Create a custom ResponseWriter to capture the status code
+		// Create a custom ResponseWriter to capture the status code (Wrap)
 		wrappedWriter := &responseWriter{
 			ResponseWriter: w,
 			statusCode:     http.StatusOK,
