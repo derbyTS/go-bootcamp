@@ -109,15 +109,28 @@ func main() {
 		Whitelist:                   []string{"sortBy", "sortOrder", "name", "age", "class"},
 	}
 
+	// secureMux := mw.Cors(
+	// 	rl.Throttle(
+	// 		mw.ResponseTimeMiddleware(
+	// 			mw.SecurityHeaders(
+	// 				mw.Compression(
+	// 					mw.Hpp(hppOPtions)(mux)))),
+	// 	))
+	// secureMux := applyMiddlewares(
+	// 	mux,
+	// 	mw.Hpp(hppOPtions),
+	// 	mw.Compression,
+	// 	mw.SecurityHeaders,
+	// 	mw.ResponseTimeMiddleware,
+	// 	rl.Throttle,
+	// 	mw.Cors,
+	// )
+
+	secureMux := mw.SecurityHeaders(mux)
+
 	server := &http.Server{
-		Addr: port,
-		Handler: mw.Cors(
-			rl.Throttle(
-				mw.ResponseTimeMiddleware(
-					mw.Compression(
-						mw.SecurityHeaders(
-							mw.Hpp(hppOPtions)(mux)))),
-			)),
+		Addr:      port,
+		Handler:   secureMux,
 		TLSConfig: tlsConfig,
 	}
 
@@ -126,4 +139,16 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
+}
+
+// Middleware is a function that wraps an http.Handler with additional functionality
+
+type Middleware func(http.Handler) http.Handler
+
+func applyMiddlewares(handler http.Handler, middlewares ...Middleware) http.Handler {
+	for _, middleware := range middlewares {
+		handler = middleware(handler)
+	}
+
+	return handler
 }
