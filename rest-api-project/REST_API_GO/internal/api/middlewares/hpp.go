@@ -14,8 +14,11 @@ type HppOptions struct {
 	Whitelist                   []string
 }
 
+// Hpp - HTTP Parameter Pollution
 func Hpp(options HppOptions) func(http.Handler) http.Handler {
+	fmt.Println("HPP Middleware .....")
 	return func(next http.Handler) http.Handler {
+		fmt.Println("HPP Middleware return.....")
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if options.CheckBody && r.Method == http.MethodPost &&
 				isCorrectContentType(r, options.CheckBodyOnlyForContentType) {
@@ -25,6 +28,7 @@ func Hpp(options HppOptions) func(http.Handler) http.Handler {
 				filterQueryParams(r, options.Whitelist)
 			}
 			next.ServeHTTP(w, r)
+			fmt.Println("HPP Middleware sent.....")
 		})
 	}
 }

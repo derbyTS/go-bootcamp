@@ -66,15 +66,6 @@ func execsHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Hello Get Execs Route"))
 		return
 	case http.MethodPost:
-		fmt.Println("Query: ", r.URL.Query())
-		fmt.Println("name: ", r.URL.Query().Get("name"))
-
-		err := r.ParseForm()
-		if err != nil {
-			return
-		}
-		fmt.Println("Form from post method: ", r.Form)
-
 		w.Write([]byte("Hello Post Execs Route"))
 		return
 	case http.MethodPut:
@@ -120,9 +111,13 @@ func main() {
 
 	server := &http.Server{
 		Addr: port,
-		Handler: mw.Hpp(hppOPtions)(rl.Middleware(
-			mw.Compression(mw.ResponseTimeMiddleware(mw.SecurityHeaders(mw.Cors(mux)))),
-		)),
+		Handler: mw.Cors(
+			rl.Throttle(
+				mw.ResponseTimeMiddleware(
+					mw.Compression(
+						mw.SecurityHeaders(
+							mw.Hpp(hppOPtions)(mux)))),
+			)),
 		TLSConfig: tlsConfig,
 	}
 
