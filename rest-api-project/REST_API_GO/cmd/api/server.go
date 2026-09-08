@@ -5,17 +5,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
+	// "time"
 
 	mw "restapi/internal/api/middlewares"
 )
-
-type user struct {
-	// Name []string `json:"name"` //You can make it an array if the request is expected to be array. Cannot unmarshal array into Go struct field user.name of type string
-	Name string `json:"name"`
-	Age  int    `json:"age"`
-	City string `json:"city"`
-}
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Hello Root Route"))
@@ -100,14 +93,14 @@ func main() {
 		MinVersion: tls.VersionTLS12,
 	}
 
-	rl := mw.NewRateLimiter(5, time.Minute)
-
-	hppOPtions := mw.HppOptions{
-		CheckQuery:                  true,
-		CheckBody:                   true,
-		CheckBodyOnlyForContentType: "application/x-www.form-urlencoded",
-		Whitelist:                   []string{"sortBy", "sortOrder", "name", "age", "class"},
-	}
+	// rl := mw.NewRateLimiter(5, time.Minute)
+	//
+	// hppOPtions := mw.HppOptions{
+	// 	CheckQuery:                  true,
+	// 	CheckBody:                   true,
+	// 	CheckBodyOnlyForContentType: "application/x-www.form-urlencoded",
+	// 	Whitelist:                   []string{"sortBy", "sortOrder", "name", "age", "class"},
+	// }
 
 	// secureMux := mw.Cors(
 	// 	rl.Throttle(
