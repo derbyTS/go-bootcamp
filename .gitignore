@@ -44,3 +44,9 @@ coverage.out
 
 #promt
 prompt.md
+
+# Local scratch files
+scratch.*
+*.scratch
+temp.*
+*.tmp
