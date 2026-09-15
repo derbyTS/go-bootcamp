@@ -10,9 +10,15 @@ import (
 
 	mw "restapi/internal/api/middlewares"
 	"restapi/internal/api/router"
+	"restapi/internal/repositories/sqlconnect"
 )
 
 func main() {
+	_, err := sqlconnect.ConnectDB("dbeaver_testdb")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 	port := ":3000"
 
 	cert := "cert.pem"
@@ -59,7 +65,7 @@ func main() {
 	}
 
 	fmt.Println("Server is running on: ", port)
-	err := server.ListenAndServeTLS(cert, key)
+	err = server.ListenAndServeTLS(cert, key)
 	if err != nil {
 		log.Fatalln(err)
 	}
