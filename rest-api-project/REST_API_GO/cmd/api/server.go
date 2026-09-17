@@ -5,21 +5,29 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	// "time"
 
 	mw "restapi/internal/api/middlewares"
 	"restapi/internal/api/router"
 	"restapi/internal/repositories/sqlconnect"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	_, err := sqlconnect.ConnectDB("dbeaver_testdb")
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	_, err = sqlconnect.ConnectDB()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	port := ":3000"
+	port := os.Getenv("SERVER_PORT")
 
 	cert := "cert.pem"
 	key := "key.pem"
