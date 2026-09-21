@@ -23,6 +23,7 @@ This guide covers installing, troubleshooting, managing, and connecting to Maria
 - **Check Service Status:**
   ```bash
   brew services list
+  pgrep mariadbd || pgrep mysqld
   ```
 
 ### Terminal Login Commands
