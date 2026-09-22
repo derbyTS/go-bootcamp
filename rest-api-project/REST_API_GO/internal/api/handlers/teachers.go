@@ -2,6 +2,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -47,6 +48,13 @@ func init() {
 }
 
 func getTeachersHandler(w http.ResponseWriter, r *http.Request) {
+	db, err := sqlconnect.ConnectDB()
+	if err != nil {
+		http.Error(w, "Error connecting to database", http.StatusInternalServerError)
+		return
+	}
+
+	defer db.Close()
 	path := strings.TrimPrefix(r.URL.Path, "/teachers/")
 	idStr := strings.TrimSuffix(path, "/")
 	fmt.Println("ID String: ", idStr)
@@ -83,12 +91,20 @@ func getTeachersHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teacher, exist := teachers[id]
-	if !exist {
+	var teacher models.Teacher
+	err = db.QueryRow("SELECT id, first_name, last_name, email, class, subject FROM teachers WHERE ID = ? ", id).
+		Scan(&teacher.ID, &teacher.FirstName, &teacher.LastName, &teacher.Email, &teacher.Class, &teacher.Subject)
+
+	if err == sql.ErrNoRows {
 		http.Error(w, "Teacher not found", http.StatusNotFound)
+		return
+	} else if err != nil {
+		fmt.Println("error in select query: ", err)
+		http.Error(w, "Database query error", http.StatusNotFound)
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(teacher)
 }
 
