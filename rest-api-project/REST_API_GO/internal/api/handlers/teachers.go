@@ -68,7 +68,11 @@ func getTeachersHandler(w http.ResponseWriter, r *http.Request) {
 		// var args []interface{}
 		var args []any
 
-		args = addFilters(r, query, args)
+		args = addFilters(
+			r,
+			&query,
+			args,
+		) // Do not copy a non-zero Builder. https://go.dev/doc/effective_go?utm_source=chatgpt.com#pointers_vs_values
 
 		// rows, err := db.Query(query, args...)
 		rows, err := db.Query(query.String(), args...)
@@ -146,7 +150,7 @@ func getTeachersHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(teacher)
 }
 
-func addFilters(r *http.Request, query strings.Builder, args []any) []any {
+func addFilters(r *http.Request, query *strings.Builder, args []any) []any {
 	params := map[string]string{
 		"first_name": "first_name",
 		"last_name":  "last_name",
