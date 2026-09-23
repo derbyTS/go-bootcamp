@@ -59,16 +59,59 @@ func getTeachersHandler(w http.ResponseWriter, r *http.Request) {
 	idStr := strings.TrimSuffix(path, "/")
 	fmt.Println("ID String: ", idStr)
 
-	if idStr == "" && idStr != " " {
+	if idStr == "" {
 		firstName := r.URL.Query().Get("first_name")
 		lastName := r.URL.Query().Get("last_name")
 
-		teacherList := make([]models.Teacher, 0, len(teachers))
-		for _, teacher := range teachers {
-			if (firstName == "" || teacher.FirstName == firstName) &&
-				(lastName == "" || teacher.LastName == lastName) {
-				teacherList = append(teacherList, teacher)
+		query := "SELECT id, first_name, last_name, email, class, subject FROM teachers WHERE 1=1"
+		// var args []interface{}
+		var args []any
+
+		if firstName != "" {
+			query += " AND first_name = ?"
+			args = append(args, firstName)
+		}
+		if lastName != "" {
+			query += " AND last_name = ?"
+			args = append(args, lastName)
+		}
+
+		rows, err := db.Query(query, args...)
+		if err != nil {
+			fmt.Println(err)
+			http.Error(w, "Database query error", http.StatusInternalServerError)
+			return
+		}
+
+		defer rows.Close()
+
+		teacherList := make([]models.Teacher, 0)
+
+		for rows.Next() {
+			var teacher models.Teacher
+			err := rows.Scan(
+				&teacher.ID,
+				&teacher.FirstName,
+				&teacher.LastName,
+				&teacher.Email,
+				&teacher.Class,
+				&teacher.Subject,
+			)
+			if err != nil {
+				fmt.Println(err)
+				http.Error(w, "Error Scanning database results", http.StatusInternalServerError)
+				return
 			}
+			// Added recommend by LLM to remove Diagnostics: 1. sql.Rows "rows" is used in Next loop at line 89 without final check of rows.Err() [default] in `rows, err := db.Query(query, args...)`
+
+			if err := rows.Err(); err != nil {
+				fmt.Println("Error iterating rows:", err)
+				http.Error(w, "Error reading database results", http.StatusInternalServerError)
+				return
+			}
+
+			teacherList = append(teacherList, teacher)
+
 		}
 
 		response := struct {
@@ -77,7 +120,7 @@ func getTeachersHandler(w http.ResponseWriter, r *http.Request) {
 			Data   []models.Teacher `json:"data"`
 		}{
 			Status: "Success",
-			Count:  len(teachers),
+			Count:  len(teacherList),
 			Data:   teacherList,
 		}
 
