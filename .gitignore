@@ -50,3 +50,6 @@ scratch.*
 *.scratch
 temp.*
 *.tmp
+
+#Quick function test
+/quick-func/

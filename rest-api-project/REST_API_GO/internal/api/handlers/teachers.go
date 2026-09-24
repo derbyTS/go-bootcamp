@@ -60,11 +60,13 @@ func getTeachersHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("ID String: ", idStr)
 
 	if idStr == "" {
+
 		// query := "SELECT id, first_name, last_name, email, class, subject FROM teachers WHERE 1=1"
 		var query strings.Builder
 		query.WriteString(
 			"SELECT id, first_name, last_name, email, class, subject FROM teachers WHERE 1=1",
 		)
+
 		// var args []interface{}
 		var args []any
 
@@ -74,7 +76,10 @@ func getTeachersHandler(w http.ResponseWriter, r *http.Request) {
 			args,
 		) // Do not copy a non-zero Builder. https://go.dev/doc/effective_go?utm_source=chatgpt.com#pointers_vs_values
 
+		addSorting(r, &query)
+
 		// rows, err := db.Query(query, args...)
+		fmt.Println(query.String())
 		rows, err := db.Query(query.String(), args...)
 		if err != nil {
 			fmt.Println(err)
@@ -148,6 +153,55 @@ func getTeachersHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(teacher)
+}
+
+func addSorting(r *http.Request, query *strings.Builder) {
+	sortParams := r.URL.Query()["sortBy"]
+	if len(sortParams) > 0 {
+		// query += " ORDER BY ?"
+		query.WriteString(" ORDER BY")
+
+		for i, param := range sortParams {
+			parts := strings.Split(param, ":")
+			if len(parts) != 2 {
+				continue
+			}
+
+			field, order := parts[0], parts[1]
+			fmt.Println("field: ", field)
+			fmt.Println("order: ", order)
+
+			if !isValidSortField(field) || !isValidSortOrder(order) {
+				continue
+			}
+
+			if i > 0 {
+				query.WriteString(",")
+			}
+
+			query.WriteString(" ")
+			query.WriteString(field)
+			query.WriteString(" ")
+			query.WriteString(order)
+
+		}
+	}
+}
+
+func isValidSortOrder(order string) bool {
+	return order == "asc" || order == "desc"
+}
+
+func isValidSortField(field string) bool {
+	validFields := map[string]bool{
+		"first_name": true,
+		"last_name":  true,
+		"email":      true,
+		"class":      true,
+		"subject":    true,
+	}
+
+	return validFields[field]
 }
 
 func addFilters(r *http.Request, query *strings.Builder, args []any) []any {
