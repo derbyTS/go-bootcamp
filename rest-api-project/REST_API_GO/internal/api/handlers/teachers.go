@@ -14,6 +14,74 @@ import (
 	"restapi/internal/repositories/sqlconnect"
 )
 
+// POST /teachers/
+func addTeachersHandler(w http.ResponseWriter, r *http.Request) {
+	db, err := sqlconnect.ConnectDB()
+	if err != nil {
+		http.Error(w, "Error connecting to database", http.StatusInternalServerError)
+		return
+	}
+
+	defer db.Close()
+
+	var newTeachers []models.Teacher
+	err = json.NewDecoder(r.Body).Decode(&newTeachers)
+	if err != nil {
+		http.Error(w, "Invalid Request Body", http.StatusBadRequest)
+		return
+	}
+
+	stmt, err := db.Prepare(
+		"INSERT INTO teachers (first_name, last_name, email, class, subject) VALUES(?,?,?,?,?);")
+	if err != nil {
+		http.Error(w, "Error in preparing query", http.StatusInternalServerError)
+		fmt.Println("error preparing: ", err)
+		return
+	}
+	defer stmt.Close()
+
+	addedTeachers := make([]models.Teacher, len(newTeachers))
+
+	for i, newTeacher := range newTeachers {
+		resp, err := stmt.Exec(
+			newTeacher.FirstName,
+			newTeacher.LastName,
+			newTeacher.Email,
+			newTeacher.Class,
+			newTeacher.Subject,
+		)
+		if err != nil {
+			http.Error(w, "Error inserting data to database", http.StatusInternalServerError)
+			return
+		}
+
+		lastID, err := resp.LastInsertId()
+		if err != nil {
+			http.Error(w, "Error getting last ID", http.StatusInternalServerError)
+			return
+		}
+
+		newTeacher.ID = int(lastID)
+		addedTeachers[i] = newTeacher
+
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	response := struct {
+		Status string           `json:"status"`
+		Count  int              `json:"count"`
+		Data   []models.Teacher `json:"data"`
+	}{
+		Status: "success",
+		Count:  len(addedTeachers),
+		Data:   addedTeachers,
+	}
+
+	json.NewEncoder(w).Encode(response)
+}
+
+// GET /teachers/ or /teachers/{id}
 func getTeachersHandler(w http.ResponseWriter, r *http.Request) {
 	db, err := sqlconnect.ConnectDB()
 	if err != nil {
@@ -122,6 +190,7 @@ func getTeachersHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(teacher)
 }
 
+// PUT /teachers/{id}
 func updateTeacherHandler(w http.ResponseWriter, r *http.Request) {
 	idStr := strings.TrimPrefix(r.URL.Path, "/teachers/")
 	id, err := strconv.Atoi(idStr)
@@ -247,72 +316,6 @@ func addFilters(r *http.Request, query *strings.Builder, args []any) []any {
 		}
 	}
 	return args
-}
-
-func addTeachersHandler(w http.ResponseWriter, r *http.Request) {
-	db, err := sqlconnect.ConnectDB()
-	if err != nil {
-		http.Error(w, "Error connecting to database", http.StatusInternalServerError)
-		return
-	}
-
-	defer db.Close()
-
-	var newTeachers []models.Teacher
-	err = json.NewDecoder(r.Body).Decode(&newTeachers)
-	if err != nil {
-		http.Error(w, "Invalid Request Body", http.StatusBadRequest)
-		return
-	}
-
-	stmt, err := db.Prepare(
-		"INSERT INTO teachers (first_name, last_name, email, class, subject) VALUES(?,?,?,?,?);")
-	if err != nil {
-		http.Error(w, "Error in preparing query", http.StatusInternalServerError)
-		fmt.Println("error preparing: ", err)
-		return
-	}
-	defer stmt.Close()
-
-	addedTeachers := make([]models.Teacher, len(newTeachers))
-
-	for i, newTeacher := range newTeachers {
-		resp, err := stmt.Exec(
-			newTeacher.FirstName,
-			newTeacher.LastName,
-			newTeacher.Email,
-			newTeacher.Class,
-			newTeacher.Subject,
-		)
-		if err != nil {
-			http.Error(w, "Error inserting data to database", http.StatusInternalServerError)
-			return
-		}
-
-		lastID, err := resp.LastInsertId()
-		if err != nil {
-			http.Error(w, "Error getting last ID", http.StatusInternalServerError)
-			return
-		}
-
-		newTeacher.ID = int(lastID)
-		addedTeachers[i] = newTeacher
-
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	response := struct {
-		Status string           `json:"status"`
-		Count  int              `json:"count"`
-		Data   []models.Teacher `json:"data"`
-	}{
-		Status: "success",
-		Count:  len(addedTeachers),
-		Data:   addedTeachers,
-	}
-
-	json.NewEncoder(w).Encode(response)
 }
 
 func TeachersHandler(w http.ResponseWriter, r *http.Request) {
