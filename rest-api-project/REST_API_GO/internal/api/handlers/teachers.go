@@ -14,6 +14,21 @@ import (
 	"restapi/internal/repositories/sqlconnect"
 )
 
+func TeachersHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		getTeachersHandler(w, r)
+	case http.MethodPost:
+		addTeachersHandler(w, r)
+	case http.MethodPut:
+		updateTeacherHandler(w, r)
+	case http.MethodPatch:
+		patchTeacherHandler(w, r)
+	case http.MethodDelete:
+		w.Write([]byte("Hello Delete Teachers Route"))
+	}
+}
+
 // POST /teachers/
 func addTeachersHandler(w http.ResponseWriter, r *http.Request) {
 	db, err := sqlconnect.ConnectDB()
@@ -247,6 +262,77 @@ func updateTeacherHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(updateTeacher)
 }
 
+// PATCH /teachers/{id}
+func patchTeacherHandler(w http.ResponseWriter, r *http.Request) {
+	idStr := strings.TrimPrefix(r.URL.Path, "/teachers/")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
+
+	var updates map[string]any
+	err = json.NewDecoder(r.Body).Decode(&updates)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
+	db, err := sqlconnect.ConnectDB()
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Problem connecting to db", http.StatusInternalServerError)
+		return
+	}
+	defer db.Close()
+
+	var existing models.Teacher
+	err = db.QueryRow("SELECT id, first_name, last_name, email, class, subject FROM teachers WHERE ID = ? ", id).
+		Scan(&existing.ID, &existing.FirstName, &existing.LastName, &existing.Email, &existing.Class, &existing.Subject)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Teacher not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Unable to retrieve to database", http.StatusInternalServerError)
+		return
+	}
+
+	for k, v := range updates {
+		switch k {
+		case "first_name":
+			existing.FirstName = v.(string)
+		case "last_name":
+			existing.LastName = v.(string)
+		case "email":
+			existing.Email = v.(string)
+		case "class":
+			existing.Class = v.(string)
+		case "subject":
+			existing.Subject = v.(string)
+		}
+	}
+
+	_, err = db.Exec(
+		"UPDATE teachers SET first_name = ?, last_name = ?, email = ?, class = ?, subject = ? WHERE id = ?",
+		existing.FirstName,
+		existing.LastName,
+		existing.Email,
+		existing.Class,
+		existing.Subject,
+		existing.ID,
+	)
+	if err != nil {
+		http.Error(w, "Error updaating teacher", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(existing)
+}
+
 func addSorting(r *http.Request, query *strings.Builder) {
 	sortParams := r.URL.Query()["sortBy"]
 	if len(sortParams) > 0 {
@@ -316,19 +402,4 @@ func addFilters(r *http.Request, query *strings.Builder, args []any) []any {
 		}
 	}
 	return args
-}
-
-func TeachersHandler(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		getTeachersHandler(w, r)
-	case http.MethodPost:
-		addTeachersHandler(w, r)
-	case http.MethodPut:
-		updateTeacherHandler(w, r)
-	case http.MethodPatch:
-		w.Write([]byte("Hello Patch Teachers Route"))
-	case http.MethodDelete:
-		w.Write([]byte("Hello Delete Teachers Route"))
-	}
 }
