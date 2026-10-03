@@ -163,8 +163,8 @@ func GetTeachersHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-// GetTeacherHandler /teachers/{id}
-func GetTeacherHandler(w http.ResponseWriter, r *http.Request) {
+// GetOneTeacherHandler /teachers/{id}
+func GetOneTeacherHandler(w http.ResponseWriter, r *http.Request) {
 	db, err := sqlconnect.ConnectDB()
 	if err != nil {
 		http.Error(w, "Error connecting to database", http.StatusInternalServerError)
@@ -201,7 +201,7 @@ func GetTeacherHandler(w http.ResponseWriter, r *http.Request) {
 
 // PutTeacherHandler PUT /teachers/{id}
 func PutTeacherHandler(w http.ResponseWriter, r *http.Request) {
-	idStr := strings.TrimPrefix(r.URL.Path, "/teachers/")
+	idStr := r.PathValue("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		log.Println(err)
@@ -256,9 +256,9 @@ func PutTeacherHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(updateTeacher)
 }
 
-// PatchTeacherHandler PATCH /teachers/{id}
-func PatchTeacherHandler(w http.ResponseWriter, r *http.Request) {
-	idStr := strings.TrimPrefix(r.URL.Path, "/teachers/")
+// PatchOneTeacherHandler PATCH /teachers/{id}
+func PatchOneTeacherHandler(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		log.Println(err)
@@ -343,7 +343,7 @@ func PatchTeacherHandler(w http.ResponseWriter, r *http.Request) {
 
 // DeleteTeacherHandler DELETE /teachers/{id}
 func DeleteTeacherHandler(w http.ResponseWriter, r *http.Request) {
-	idStr := strings.TrimPrefix(r.URL.Path, "/teachers/")
+	idStr := r.PathValue("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		log.Println(err)
