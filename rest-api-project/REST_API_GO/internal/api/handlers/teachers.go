@@ -15,23 +15,8 @@ import (
 	"restapi/internal/repositories/sqlconnect"
 )
 
-func TeachersHandler(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		getTeachersHandler(w, r)
-	case http.MethodPost:
-		addTeachersHandler(w, r)
-	case http.MethodPut:
-		updateTeacherHandler(w, r)
-	case http.MethodPatch:
-		patchTeacherHandler(w, r)
-	case http.MethodDelete:
-		deleteTeacherHandler(w, r)
-	}
-}
-
-// POST /teachers/
-func addTeachersHandler(w http.ResponseWriter, r *http.Request) {
+// AddTeachersHandler POST /teachers/
+func AddTeachersHandler(w http.ResponseWriter, r *http.Request) {
 	db, err := sqlconnect.ConnectDB()
 	if err != nil {
 		http.Error(w, "Error connecting to database", http.StatusInternalServerError)
@@ -97,8 +82,8 @@ func addTeachersHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-// GET /teachers/ or /teachers/{id}
-func getTeachersHandler(w http.ResponseWriter, r *http.Request) {
+// GetTeachersHandler GET /teachers/
+func GetTeachersHandler(w http.ResponseWriter, r *http.Request) {
 	db, err := sqlconnect.ConnectDB()
 	if err != nil {
 		http.Error(w, "Error connecting to database", http.StatusInternalServerError)
@@ -106,82 +91,90 @@ func getTeachersHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer db.Close()
-	path := strings.TrimPrefix(r.URL.Path, "/teachers/")
-	idStr := strings.TrimSuffix(path, "/")
-	fmt.Println("ID String: ", idStr)
 
-	if idStr == "" {
+	// query := "SELECT id, first_name, last_name, email, class, subject FROM teachers WHERE 1=1"
+	var query strings.Builder
+	query.WriteString(
+		"SELECT id, first_name, last_name, email, class, subject FROM teachers WHERE 1=1",
+	)
 
-		// query := "SELECT id, first_name, last_name, email, class, subject FROM teachers WHERE 1=1"
-		var query strings.Builder
-		query.WriteString(
-			"SELECT id, first_name, last_name, email, class, subject FROM teachers WHERE 1=1",
+	// var args []interface{}
+	var args []any
+
+	args = addFilters(
+		r,
+		&query,
+		args,
+	) // Do not copy a non-zero Builder. https://go.dev/doc/effective_go?utm_source=chatgpt.com#pointers_vs_values
+
+	addSorting(r, &query)
+
+	// rows, err := db.Query(query, args...)
+	fmt.Println(query.String())
+	rows, err := db.Query(query.String(), args...)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Database query error", http.StatusInternalServerError)
+		return
+	}
+
+	defer rows.Close()
+
+	teacherList := make([]models.Teacher, 0)
+
+	for rows.Next() {
+		var teacher models.Teacher
+		err := rows.Scan(
+			&teacher.ID,
+			&teacher.FirstName,
+			&teacher.LastName,
+			&teacher.Email,
+			&teacher.Class,
+			&teacher.Subject,
 		)
-
-		// var args []interface{}
-		var args []any
-
-		args = addFilters(
-			r,
-			&query,
-			args,
-		) // Do not copy a non-zero Builder. https://go.dev/doc/effective_go?utm_source=chatgpt.com#pointers_vs_values
-
-		addSorting(r, &query)
-
-		// rows, err := db.Query(query, args...)
-		fmt.Println(query.String())
-		rows, err := db.Query(query.String(), args...)
 		if err != nil {
 			fmt.Println(err)
-			http.Error(w, "Database query error", http.StatusInternalServerError)
+			http.Error(w, "Error Scanning database results", http.StatusInternalServerError)
+			return
+		}
+		// Added recommend by LLM to remove Diagnostics: 1. sql.Rows "rows" is used in Next loop at line 89 without final check of rows.Err() [default] in `rows, err := db.Query(query, args...)`
+
+		if err := rows.Err(); err != nil {
+			fmt.Println("Error iterating rows:", err)
+			http.Error(w, "Error reading database results", http.StatusInternalServerError)
 			return
 		}
 
-		defer rows.Close()
+		teacherList = append(teacherList, teacher)
 
-		teacherList := make([]models.Teacher, 0)
-
-		for rows.Next() {
-			var teacher models.Teacher
-			err := rows.Scan(
-				&teacher.ID,
-				&teacher.FirstName,
-				&teacher.LastName,
-				&teacher.Email,
-				&teacher.Class,
-				&teacher.Subject,
-			)
-			if err != nil {
-				fmt.Println(err)
-				http.Error(w, "Error Scanning database results", http.StatusInternalServerError)
-				return
-			}
-			// Added recommend by LLM to remove Diagnostics: 1. sql.Rows "rows" is used in Next loop at line 89 without final check of rows.Err() [default] in `rows, err := db.Query(query, args...)`
-
-			if err := rows.Err(); err != nil {
-				fmt.Println("Error iterating rows:", err)
-				http.Error(w, "Error reading database results", http.StatusInternalServerError)
-				return
-			}
-
-			teacherList = append(teacherList, teacher)
-
-		}
-
-		response := struct {
-			Status string           `json:"status"`
-			Count  int              `json:"count"`
-			Data   []models.Teacher `json:"data"`
-		}{
-			Status: "Success",
-			Count:  len(teacherList),
-			Data:   teacherList,
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(response)
 	}
+
+	response := struct {
+		Status string           `json:"status"`
+		Count  int              `json:"count"`
+		Data   []models.Teacher `json:"data"`
+	}{
+		Status: "Success",
+		Count:  len(teacherList),
+		Data:   teacherList,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+// GetTeacherHandler /teachers/{id}
+func GetTeacherHandler(w http.ResponseWriter, r *http.Request) {
+	db, err := sqlconnect.ConnectDB()
+	if err != nil {
+		http.Error(w, "Error connecting to database", http.StatusInternalServerError)
+		return
+	}
+
+	defer db.Close()
+
+	idStr := r.PathValue("id")
+
 	// Handler Path Parameter
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -206,8 +199,8 @@ func getTeachersHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(teacher)
 }
 
-// PUT /teachers/{id}
-func updateTeacherHandler(w http.ResponseWriter, r *http.Request) {
+// PutTeacherHandler PUT /teachers/{id}
+func PutTeacherHandler(w http.ResponseWriter, r *http.Request) {
 	idStr := strings.TrimPrefix(r.URL.Path, "/teachers/")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -263,8 +256,8 @@ func updateTeacherHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(updateTeacher)
 }
 
-// PATCH /teachers/{id}
-func patchTeacherHandler(w http.ResponseWriter, r *http.Request) {
+// PatchTeacherHandler PATCH /teachers/{id}
+func PatchTeacherHandler(w http.ResponseWriter, r *http.Request) {
 	idStr := strings.TrimPrefix(r.URL.Path, "/teachers/")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -348,8 +341,8 @@ func patchTeacherHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(existing)
 }
 
-// DELETE /teachers/{id}
-func deleteTeacherHandler(w http.ResponseWriter, r *http.Request) {
+// DeleteTeacherHandler DELETE /teachers/{id}
+func DeleteTeacherHandler(w http.ResponseWriter, r *http.Request) {
 	idStr := strings.TrimPrefix(r.URL.Path, "/teachers/")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
