@@ -256,6 +256,107 @@ func PutTeacherHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(updateTeacher)
 }
 
+// PatchTeachersHandler PATCH /teachers/
+func PatchTeachersHandler(w http.ResponseWriter, r *http.Request) {
+	db, err := sqlconnect.ConnectDB()
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Problem connecting to db", http.StatusInternalServerError)
+		return
+	}
+	defer db.Close()
+
+	var updates []map[string]any
+	err = json.NewDecoder(r.Body).Decode(&updates)
+	if err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "Error starting transaction", http.StatusInternalServerError)
+		return
+	}
+
+	for _, update := range updates {
+		idStr, ok := update["id"].(string)
+		if !ok {
+			tx.Rollback()
+			http.Error(w, "Invalid teachers ID in update", http.StatusBadRequest)
+			return
+		}
+
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		var teacherFromDB models.Teacher
+		err = db.QueryRow("SELECT id, first_name, last_name, email, class, subject FROM teachers WHERE ID = ? ", id).
+			Scan(&teacherFromDB.ID, &teacherFromDB.FirstName, &teacherFromDB.LastName, &teacherFromDB.Email, &teacherFromDB.Class, &teacherFromDB.Subject)
+		if err != nil {
+			tx.Rollback()
+			if err == sql.ErrNoRows {
+				http.Error(w, "Teacher not found", http.StatusNotFound)
+				return
+			}
+			http.Error(w, "Unable to retrieve to database", http.StatusInternalServerError)
+			return
+		}
+
+		// Apply updates using reflect
+		teacherVal := reflect.ValueOf(&teacherFromDB).Elem()
+		teacherType := teacherVal.Type()
+
+		for k, v := range update {
+			if string(k) == "id" {
+				continue
+			}
+			for i := 0; i < teacherVal.NumField(); i++ {
+				field := teacherType.Field(i)
+				if field.Tag.Get("json") == k+",omitempty" {
+					fieldVal := teacherVal.Field(i)
+					if fieldVal.CanSet() {
+						val := reflect.ValueOf(v)
+						if val.Type().ConvertibleTo(field.Type) {
+							fieldVal.Set(val.Convert(field.Type))
+						} else {
+							tx.Rollback()
+							log.Printf("Cannot convert %v to %v\n", val.Type(), field.Type)
+						}
+					}
+					break
+				}
+			}
+		}
+
+		_, err = tx.Exec(
+			"UPDATE teachers SET first_name = ?, last_name = ?, email = ?, class = ?, subject = ? WHERE id = ?",
+			teacherFromDB.FirstName,
+			teacherFromDB.LastName,
+			teacherFromDB.Email,
+			teacherFromDB.Class,
+			teacherFromDB.Subject,
+			teacherFromDB.ID,
+		)
+		if err != nil {
+			tx.Rollback()
+			http.Error(w, "Error updating teacher", http.StatusInternalServerError)
+			return
+		}
+	}
+	err = tx.Commit()
+	if err != nil {
+		http.Error(w, "Error committing transaction", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 // PatchOneTeacherHandler PATCH /teachers/{id}
 func PatchOneTeacherHandler(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
