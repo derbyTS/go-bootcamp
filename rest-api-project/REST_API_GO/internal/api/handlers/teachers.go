@@ -25,6 +25,7 @@ func AddTeachersHandler(w http.ResponseWriter, r *http.Request) {
 	addedTeachers, err := sqlconnect.AddTeachersDBHandler(newTeachers)
 	if err != nil {
 		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -49,6 +50,7 @@ func GetTeachersHandler(w http.ResponseWriter, r *http.Request) {
 	teachers, err := sqlconnect.GetTeachersDBHandler(teachers, r)
 	if err != nil {
 		log.Println(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -80,6 +82,7 @@ func GetOneTeacherHandler(w http.ResponseWriter, r *http.Request) {
 	teacher, err := sqlconnect.GetTeachersDBHandlerByID(id)
 	if err != nil {
 		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -108,6 +111,7 @@ func PutTeacherHandler(w http.ResponseWriter, r *http.Request) {
 	updatedTeacherFromDB, err := sqlconnect.PutTeacherDBHandler(id, updateTeacher)
 	if err != nil {
 		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -127,6 +131,7 @@ func PatchTeachersHandler(w http.ResponseWriter, r *http.Request) {
 	err = sqlconnect.PatchTeachersDBHandler(updates)
 	if err != nil {
 		log.Println(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -154,6 +159,7 @@ func PatchOneTeacherHandler(w http.ResponseWriter, r *http.Request) {
 	updatedTeacher, err := sqlconnect.PatchOneTeacherDBHandler(id, updates)
 	if err != nil {
 		log.Println(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -174,6 +180,7 @@ func DeleteOneTeacherHandler(w http.ResponseWriter, r *http.Request) {
 	err = sqlconnect.DeleteOneTeacherDBHandler(id)
 	if err != nil {
 		log.Println(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -203,6 +210,7 @@ func DeleteTeachersHandler(w http.ResponseWriter, r *http.Request) {
 	deletedIDs, err := sqlconnect.DeleteTeachersDBHandler(ids)
 	if err != nil {
 		log.Println(err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
