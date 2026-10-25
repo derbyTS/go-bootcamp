@@ -4,6 +4,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strconv"
@@ -15,11 +16,57 @@ import (
 // AddTeachersHandler POST /teachers/
 func AddTeachersHandler(w http.ResponseWriter, r *http.Request) {
 	var newTeachers []models.Teacher
+	var rawTeachers []map[string]any
 
-	err := json.NewDecoder(r.Body).Decode(&newTeachers)
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Error reading request", http.StatusInternalServerError)
+		return
+	}
+
+	defer r.Body.Close()
+
+	err = json.Unmarshal(body, &rawTeachers)
 	if err != nil {
 		http.Error(w, "Invalid Request Body", http.StatusBadRequest)
 		return
+	}
+
+	fields := GetFieldNames(models.Teacher{})
+
+	allowedField := make(map[string]struct{})
+	for _, field := range fields {
+		allowedField[field] = struct{}{}
+	}
+
+	for _, teacher := range rawTeachers {
+		for key := range teacher {
+			_, ok := allowedField[key]
+			if !ok {
+				http.Error(w, "Unnable to accept field found in request.", http.StatusBadRequest)
+				return
+			}
+		}
+	}
+
+	err = json.Unmarshal(body, &newTeachers)
+	if err != nil {
+		http.Error(w, "Invalid Request Body", http.StatusBadRequest)
+		return
+	}
+
+	for _, teacher := range newTeachers {
+		// if teacher.FirstName == "" || teacher.LastName == "" || teacher.Email == "" ||
+		// 	teacher.Class == "" ||
+		// 	teacher.Subject == "" {
+		// 	http.Error(w, "All fields are required", http.StatusBadRequest)
+		// 	return
+		// }
+		err := CheckBlankFields(teacher)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 	}
 
 	addedTeachers, err := sqlconnect.AddTeachersDBHandler(newTeachers)
