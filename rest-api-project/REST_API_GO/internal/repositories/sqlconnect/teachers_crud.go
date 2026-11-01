@@ -31,13 +31,13 @@ func GetTeachersDBHandler(teachers []models.Teacher, r *http.Request) ([]models.
 	// var args []interface{}
 	var args []any
 
-	args = addFilters(
+	args = utils.AddFilters(
 		r,
 		&query,
 		args,
 	) // Do not copy a non-zero Builder. https://go.dev/doc/effective_go?utm_source=chatgpt.com#pointers_vs_values
 
-	addSorting(r, &query)
+	utils.AddSorting(r, &query)
 
 	// rows, err := db.Query(query, args...)
 	// fmt.Println(query.String())
@@ -113,7 +113,7 @@ func AddTeachersDBHandler(newTeachers []models.Teacher) ([]models.Teacher, error
 
 	// stmt, err := db.Prepare(
 	// 	"INSERT INTO teachers (first_name, last_name, email, class, subject) VALUES(?,?,?,?,?);")
-	stmt, err := db.Prepare(generateInsertQuery(models.Teacher{}))
+	stmt, err := db.Prepare(utils.GenerateInsertQuery("teachers", models.Teacher{}))
 	if err != nil {
 		log.Println("error preparing: ", err)
 		// http.Error(w, "Error in preparing query", http.StatusInternalServerError)
@@ -124,7 +124,7 @@ func AddTeachersDBHandler(newTeachers []models.Teacher) ([]models.Teacher, error
 	addedTeachers := make([]models.Teacher, len(newTeachers))
 
 	for i, newTeacher := range newTeachers {
-		values := getStructValues(newTeacher)
+		values := utils.GetStructValues(newTeacher)
 		resp, err := stmt.Exec(values...)
 		if err != nil {
 			// http.Error(w, "Error inserting data to database", http.StatusInternalServerError)
@@ -142,40 +142,6 @@ func AddTeachersDBHandler(newTeachers []models.Teacher) ([]models.Teacher, error
 
 	}
 	return addedTeachers, nil
-}
-
-func generateInsertQuery(model any) string {
-	modelType := reflect.TypeOf(model)
-	var columns, placeholders string
-	for i := 0; i < modelType.NumField(); i++ {
-		dbTag := modelType.Field(i).Tag.Get("db")
-		fmt.Println("dbTag: ", dbTag)
-		dbTag = strings.TrimSuffix(dbTag, ",omitempty")
-		if dbTag != "" && dbTag != "id" {
-			if columns != "" {
-				columns += ", "
-				placeholders += ", "
-			}
-			columns += dbTag
-			placeholders += "?"
-		}
-	}
-	fmt.Printf("INSERT INTO teachers (%s) VALUES (%s)\n", columns, placeholders)
-	return fmt.Sprintf("INSERT INTO teachers (%s) VALUES (%s)", columns, placeholders)
-}
-
-func getStructValues(model any) []any {
-	modelValue := reflect.ValueOf(model)
-	modelType := modelValue.Type()
-	values := []any{}
-	for i := 0; i < modelType.NumField(); i++ {
-		dbTag := modelType.Field(i).Tag.Get("db")
-		if dbTag != "" && dbTag != "id,omitempty" {
-			values = append(values, modelValue.Field(i).Interface())
-		}
-	}
-	log.Println("values: ", values)
-	return values
 }
 
 func PutTeacherDBHandler(id int, updateTeacher models.Teacher) (models.Teacher, error) {
@@ -472,75 +438,4 @@ func DeleteTeachersDBHandler(ids []int) ([]int, error) {
 		return nil, utils.ErrorHandler(err, "ID's do not exist")
 	}
 	return deletedIDs, nil
-}
-
-func addFilters(r *http.Request, query *strings.Builder, args []any) []any {
-	params := map[string]string{
-		"first_name": "first_name",
-		"last_name":  "last_name",
-		"email":      "email",
-		"class":      "class",
-		"subject":    "subject",
-	}
-
-	for param, dbField := range params {
-		value := r.URL.Query().Get(param)
-		if value != "" {
-			// query += " AND " + dbField + " =?"
-			query.WriteString(" AND ")
-			query.WriteString(dbField)
-			query.WriteString(" =?")
-			args = append(args, value)
-		}
-	}
-	return args
-}
-
-func addSorting(r *http.Request, query *strings.Builder) {
-	sortParams := r.URL.Query()["sortBy"]
-	if len(sortParams) > 0 {
-		// query += " ORDER BY ?"
-		query.WriteString(" ORDER BY")
-
-		for i, param := range sortParams {
-			parts := strings.Split(param, ":")
-			if len(parts) != 2 {
-				continue
-			}
-
-			field, order := parts[0], parts[1]
-			fmt.Println("field: ", field)
-			fmt.Println("order: ", order)
-
-			if !isValidSortField(field) || !isValidSortOrder(order) {
-				continue
-			}
-
-			if i > 0 {
-				query.WriteString(",")
-			}
-
-			query.WriteString(" ")
-			query.WriteString(field)
-			query.WriteString(" ")
-			query.WriteString(order)
-
-		}
-	}
-}
-
-func isValidSortOrder(order string) bool {
-	return order == "asc" || order == "desc"
-}
-
-func isValidSortField(field string) bool {
-	validFields := map[string]bool{
-		"first_name": true,
-		"last_name":  true,
-		"email":      true,
-		"class":      true,
-		"subject":    true,
-	}
-
-	return validFields[field]
 }
