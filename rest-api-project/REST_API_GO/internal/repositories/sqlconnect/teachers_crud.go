@@ -439,3 +439,66 @@ func DeleteTeachersDBHandler(ids []int) ([]int, error) {
 	}
 	return deletedIDs, nil
 }
+
+func GetStudentsByTeacherIDFromDb(
+	teacherID string,
+	students []models.Student,
+) ([]models.Student, error) {
+	db, err := ConnectDB()
+	if err != nil {
+		log.Println(err)
+		return nil, utils.ErrorHandler(err, "Problem connecting to db")
+	}
+
+	defer db.Close()
+
+	query := `select id, first_name, last_name, email, class from students where class = (select class from teachers where id = ?)`
+
+	rows, err := db.Query(query, teacherID)
+	if err != nil {
+		log.Println(err)
+		return nil, utils.ErrorHandler(err, "Problem query to db")
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var student models.Student
+		err = rows.Scan(
+			&student.ID,
+			&student.FirstName,
+			&student.LastName,
+			&student.Email,
+			&student.Class,
+		)
+		if err != nil {
+			log.Println(err)
+			return nil, utils.ErrorHandler(err, "Problem with the scan")
+		}
+		students = append(students, student)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		log.Println(err)
+		return nil, utils.ErrorHandler(err, "Problem with the scan")
+	}
+	return students, nil
+}
+
+func GetStudentsCountByTeacherIDFromDb(teacherID string) (int, error) {
+	var studentCount int
+	db, err := ConnectDB()
+	if err != nil {
+		return 0, utils.ErrorHandler(err, "Problem connecting to db")
+	}
+
+	defer db.Close()
+
+	query := `SELECT COUNT(*) FROM students WHERE class = (SELECT class from teachers WHERE id = ?)`
+
+	err = db.QueryRow(query, teacherID).Scan(&studentCount)
+	if err != nil {
+		return 0, utils.ErrorHandler(err, "Problem query to db")
+	}
+	return studentCount, nil
+}
