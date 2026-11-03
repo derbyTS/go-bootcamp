@@ -437,18 +437,3 @@ func DeleteStudentsDBHandler(ids []int) ([]int, error) {
 	}
 	return deletedIDs, nil
 }
-
-func isValidSortOrder(order string) bool {
-	return order == "asc" || order == "desc"
-}
-
-func isValidSortField(field string) bool {
-	validFields := map[string]bool{
-		"first_name": true,
-		"last_name":  true,
-		"email":      true,
-		"class":      true,
-	}
-
-	return validFields[field]
-}
