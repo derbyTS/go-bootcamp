@@ -342,3 +342,22 @@ func DeleteOneExecDBHandler(id int) error {
 	}
 	return nil
 }
+
+func GetUserByUsername(username string) (models.Exec, error) {
+	db, err := ConnectDB()
+	if err != nil {
+		return models.Exec{}, utils.ErrorHandler(err, "Error connecting to database")
+	}
+	defer db.Close()
+
+	user := models.Exec{}
+	err = db.QueryRow(`SELECT id, first_name, last_name, email, username, password, inactive_status, role FROM execs where username = ?`, username).
+		Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.Username, &user.Password, &user.InactiveStatus, &user.Role)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return models.Exec{}, utils.ErrorHandler(err, "User not found")
+		}
+		return models.Exec{}, utils.ErrorHandler(err, "Database error")
+	}
+	return user, nil
+}

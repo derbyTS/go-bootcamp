@@ -2,24 +2,17 @@
 package handlers
 
 import (
-	"crypto/subtle"
-	"database/sql"
-	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"restapi/internal/models"
 	"restapi/internal/repositories/sqlconnect"
 	"restapi/pkg/utils"
-
-	"golang.org/x/crypto/argon2"
 )
 
 // AddExecsHandler POST /execs/
@@ -240,68 +233,23 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if the user exist
-	db, err := sqlconnect.ConnectDB()
+	user, err := sqlconnect.GetUserByUsername(req.Username)
 	if err != nil {
-		utils.ErrorHandler(err, "Error connecting to database")
-		http.Error(w, "Error connecting to database", http.StatusInternalServerError)
-		return
-	}
-	defer db.Close()
-
-	user := models.Exec{}
-	err = db.QueryRow(`SELECT id, first_name, last_name, email, username, password, inactive_status, role FROM execs where username = ?`, req.Username).
-		Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.Username, &user.Password, &user.InactiveStatus, &user.Role)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			utils.ErrorHandler(err, "User not found")
-			http.Error(w, "User not found", http.StatusInternalServerError)
-			return
-		}
-		http.Error(w, "Database query error", http.StatusInternalServerError)
+		http.Error(w, "User not found", http.StatusBadRequest)
 		return
 	}
 
 	// Check if the user is active
 
 	if user.InactiveStatus {
-		http.Error(w, "Account is inactive", http.StatusForbidden)
+		http.Error(w, "Invalid Credentials", http.StatusForbidden)
+		return
 	}
 
 	// Verify the password
-	parts := strings.Split(user.Password, ".")
-	if len(parts) != 2 {
-		utils.ErrorHandler(errors.New("Invalid encoded hash format"), "Invalid encoded hash format")
-		http.Error(w, "Invalid encoded hash format", http.StatusForbidden)
-		return
-	}
-	saltBase64 := parts[0]
-	passwordHashBase64 := parts[1]
-
-	salt, err := base64.StdEncoding.DecodeString(saltBase64)
+	err = utils.VerifyPassword(user.Password, req.Password)
 	if err != nil {
-		utils.ErrorHandler(err, "Failed to decode salt")
-		http.Error(w, "Failed to decode salt", http.StatusInternalServerError)
-		return
-	}
-	passwordHash, err := base64.StdEncoding.DecodeString(passwordHashBase64)
-	if err != nil {
-		utils.ErrorHandler(err, "Failed to decode password")
-		http.Error(w, "Failed to decode password", http.StatusInternalServerError)
-		return
-	}
-
-	inputPasswordHash := argon2.IDKey([]byte(req.Password), salt, 1, 64*1024, 4, 32)
-
-	if len(inputPasswordHash) != len(passwordHash) {
-		utils.ErrorHandler(errors.New("Incorect password"), "Incorect password")
-		http.Error(w, "Incorect password", http.StatusForbidden)
-		return
-	}
-
-	if subtle.ConstantTimeCompare(inputPasswordHash, passwordHash) == 1 {
-	} else {
-		utils.ErrorHandler(errors.New("Incorect password"), "Incorect password")
-		http.Error(w, "Incorect password", http.StatusForbidden)
+		http.Error(w, "Invalid Credentials", http.StatusForbidden)
 		return
 	}
 
