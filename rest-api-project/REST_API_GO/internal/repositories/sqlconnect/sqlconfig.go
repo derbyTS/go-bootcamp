@@ -10,7 +10,7 @@ import (
 )
 
 func ConnectDB() (*sql.DB, error) {
-	fmt.Println("Trying to connect to Database")
+	// fmt.Println("Trying to connect to Database")
 
 	user := os.Getenv("DB_USER")
 	password := os.Getenv("DB_PASSWORD")
@@ -31,6 +31,6 @@ func ConnectDB() (*sql.DB, error) {
 		return nil, fmt.Errorf("database ping failed: %w", err)
 	}
 
-	fmt.Println("Connected to DB..", dbName)
+	// fmt.Println("Connected to DB..", dbName)
 	return db, nil
 }
