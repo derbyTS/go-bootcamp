@@ -304,3 +304,64 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(`{"message":"Logout successfully"}`))
 }
+
+func UpdatePasswordHandler(w http.ResponseWriter, r *http.Request) {
+	idStr := r.PathValue("id")
+	userID, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid exec ID", http.StatusBadRequest)
+		return
+	}
+
+	// Read the body into a byte slice
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "There is wrong with the r.Body", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+	bodyString := string(bodyBytes)
+	fmt.Println("Sample r.Body but in string ", bodyString)
+
+	var req models.UpdatePasswordRequest
+	// err = json.NewDecoder(r.Body).Decode(&req) //Clearly its the way to go but I just want to print the body using io.ReadAll for Experiment
+	err = json.Unmarshal(bodyBytes, &req)
+	if err != nil {
+		fmt.Println("There is wrong in the body")
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
+	if req.CurrentPassword == "" || req.NewPassword == "" {
+		http.Error(w, "Please enter password", http.StatusBadRequest)
+		return
+	}
+
+	// Instructor return boolean instead of token but he just _,err I just create two option just uncomment if you choose to return token or not
+	err = sqlconnect.UpdatePasswordInDb(userID, req.CurrentPassword, req.NewPassword)
+	// token, err := sqlconnect.UpdatePasswordInDb(userID, req.CurrentPassword, req.NewPassword)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Send token as a response or as a cookie
+	// http.SetCookie(w, &http.Cookie{
+	// 	Name:     "Bearer",
+	// 	Value:    token,
+	// 	Path:     "/",
+	// 	HttpOnly: true,
+	// 	Secure:   true,
+	// 	Expires:  time.Now().Add(24 * time.Hour),
+	// 	SameSite: http.SameSiteStrictMode,
+	// })
+
+	w.Header().Set("Content-Type", "application/json")
+
+	response := struct {
+		Message string `json:"message"`
+	}{
+		Message: "Password has been updated",
+	}
+	json.NewEncoder(w).Encode(response)
+}
