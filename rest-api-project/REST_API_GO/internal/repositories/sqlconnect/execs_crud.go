@@ -2,10 +2,14 @@
 package sqlconnect
 
 import (
+	"crypto/rand"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -13,6 +17,8 @@ import (
 
 	"restapi/internal/models"
 	"restapi/pkg/utils"
+
+	"github.com/go-mail/mail/v2"
 )
 
 func GetExecsDBHandler(execs []models.Exec, r *http.Request) ([]models.Exec, error) {
@@ -402,4 +408,71 @@ func UpdatePasswordInDb(
 	}
 	return nil
 	// return token, nil
+}
+
+func ForgotPasswordDbHandler(email string) error {
+	db, err := ConnectDB()
+	if err != nil {
+		return utils.ErrorHandler(err, "Error connecting db")
+	}
+	defer db.Close()
+
+	var exec models.Exec
+	err = db.QueryRow("SELECT id FROM execs where email = ?", email).Scan(&exec.ID)
+	if err != nil {
+		return utils.ErrorHandler(err, "User not found")
+	}
+
+	duration, err := strconv.Atoi(os.Getenv("RESET_TOKEN_EXP_DURATION"))
+	if err != nil {
+		return utils.ErrorHandler(err, "Failed to send password email")
+	}
+
+	mins := time.Duration(duration)
+
+	expiry := time.Now().Add(mins * time.Minute).Format(time.RFC3339)
+
+	tokenByte := make([]byte, 32)
+	_, err = rand.Read(tokenByte)
+	if err != nil {
+		return utils.ErrorHandler(err, "Failed to send password email")
+	}
+
+	token := hex.EncodeToString(tokenByte)
+
+	hashedToken := sha256.Sum256(tokenByte)
+
+	hashedTokenString := hex.EncodeToString(hashedToken[:])
+
+	_, err = db.Exec(
+		"UPDATE execs SET password_reset_token = ?, password_token_expire = ? WHERE id= ?",
+		hashedTokenString,
+		expiry,
+		exec.ID,
+	)
+	if err != nil {
+		return utils.ErrorHandler(err, "Failed to send password email")
+	}
+
+	// Send the reset email
+	resetURL := fmt.Sprintf("https://localhost:3000/execs/resetpassword/reset/%s", token)
+	message := fmt.Sprintf(
+		"Forgot your password? Reset your password using the following link: \n%s\nIf you didn't request a password reset, please ignore this email. This link is only available for %d minutes",
+		resetURL,
+		int(mins),
+	)
+
+	m := mail.NewMessage()
+	m.SetHeader("From", "schooladmin@school.com")
+	m.SetHeader("To", email)
+	m.SetHeader("Subject", "Your password reset link")
+	m.SetBody("text/plain", message)
+
+	d := mail.NewDialer("localhost", 1025, "", "")
+
+	err = d.DialAndSend(m)
+	if err != nil {
+		return utils.ErrorHandler(err, "Failed to send password email")
+	}
+	return nil
 }
