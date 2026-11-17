@@ -390,3 +390,32 @@ func ForgotPassword(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Fprintf(w, "Password reset link send to %s", req.Email)
 }
+
+func ResetPasswordHandler(w http.ResponseWriter, r *http.Request) {
+	token := r.PathValue("resetcode")
+
+	type request struct {
+		NewPassword     string `json:"new_password"`
+		ConfirmPassword string `json:"confirm_password"`
+	}
+
+	var req request
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+	// TODO data validation
+	if req.NewPassword != req.ConfirmPassword {
+		http.Error(w, "Password not match", http.StatusBadRequest)
+		return
+	}
+
+	err = sqlconnect.ResetPasswordHandlerDb(token, req.NewPassword)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	fmt.Fprintln(w, "Password reset successfully")
+}

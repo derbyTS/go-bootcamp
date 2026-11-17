@@ -432,15 +432,15 @@ func ForgotPasswordDbHandler(email string) error {
 
 	expiry := time.Now().Add(mins * time.Minute).Format(time.RFC3339)
 
-	tokenByte := make([]byte, 32)
-	_, err = rand.Read(tokenByte)
+	tokenBytes := make([]byte, 32)
+	_, err = rand.Read(tokenBytes)
 	if err != nil {
 		return utils.ErrorHandler(err, "Failed to send password email")
 	}
 
-	token := hex.EncodeToString(tokenByte)
+	token := hex.EncodeToString(tokenBytes)
 
-	hashedToken := sha256.Sum256(tokenByte)
+	hashedToken := sha256.Sum256(tokenBytes)
 
 	hashedTokenString := hex.EncodeToString(hashedToken[:])
 
@@ -473,6 +473,43 @@ func ForgotPasswordDbHandler(email string) error {
 	err = d.DialAndSend(m)
 	if err != nil {
 		return utils.ErrorHandler(err, "Failed to send password email")
+	}
+	return nil
+}
+
+func ResetPasswordHandlerDb(token, newPassword string) error {
+	decodedInputTokenByte, err := hex.DecodeString(token)
+	if err != nil {
+		return utils.ErrorHandler(err, "Internal Error")
+	}
+
+	hashedToken := sha256.Sum256(decodedInputTokenByte)
+	hashedTokenString := hex.EncodeToString(hashedToken[:])
+
+	db, err := ConnectDB()
+	if err != nil {
+		return utils.ErrorHandler(err, "Error connecting db")
+	}
+	defer db.Close()
+
+	var user models.Exec
+	query := "SELECT id, email FROM execs where password_reset_token = ? AND password_token_expire > ?"
+	err = db.QueryRow(query, hashedTokenString, time.Now().Format(time.RFC3339)).
+		Scan(&user.ID, &user.Email)
+	if err != nil {
+		return utils.ErrorHandler(err, "Invalid or token expired")
+	}
+
+	// Hash the new password
+	hashedPassword, err := utils.HashPassword(newPassword)
+	if err != nil {
+		return utils.ErrorHandler(err, "Internal error")
+	}
+
+	updateQuery := "UPDATE execs SET password = ?, password_reset_token = NULL, password_token_expire = NULL, password_changed_at = ? WHERE id = ?"
+	_, err = db.Exec(updateQuery, hashedPassword, time.Now().Format(time.RFC3339), user.ID)
+	if err != nil {
+		return utils.ErrorHandler(err, "Internal error")
 	}
 	return nil
 }

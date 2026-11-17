@@ -69,6 +69,7 @@ func main() {
 		mw.JWTMiddleware,
 		"/execs/login",
 		"/execs/forgotpassword",
+		"/execs/resetpassword/reset/",
 	)
 	secureMux := jwtMiddleware(mw.SecurityHeaders(router))
 
