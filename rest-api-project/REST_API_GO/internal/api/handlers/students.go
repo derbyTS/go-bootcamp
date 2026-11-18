@@ -11,10 +11,22 @@ import (
 
 	"restapi/internal/models"
 	"restapi/internal/repositories/sqlconnect"
+	"restapi/pkg/utils"
 )
 
 // AddStudentsHandler POST /students/
 func AddStudentsHandler(w http.ResponseWriter, r *http.Request) {
+	_, err := utils.AuthorizeUser(
+		r.Context().Value(utils.ContextString("role")).(string),
+		"admin",
+		// "manager",
+		// "exec",
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
 	var newStudents []models.Student
 	var rawStudents []map[string]any
 
@@ -93,6 +105,17 @@ func AddStudentsHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetStudentsHandler GET /students/
 func GetStudentsHandler(w http.ResponseWriter, r *http.Request) {
+	_, err := utils.AuthorizeUser(
+		r.Context().Value(utils.ContextString("role")).(string),
+		"admin",
+		"manager",
+		// "exec",
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
 	var students []models.Student
 	page, limit := getPaginationParams(r)
 	students, totalStudents, err := sqlconnect.GetStudentsDBHandler(students, r, page, limit)
@@ -122,6 +145,17 @@ func GetStudentsHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetOneStudentHandler /students/{id}
 func GetOneStudentHandler(w http.ResponseWriter, r *http.Request) {
+	_, err := utils.AuthorizeUser(
+		r.Context().Value(utils.ContextString("role")).(string),
+		"admin",
+		"manager",
+		// "exec",
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
 	idStr := r.PathValue("id")
 
 	// Handler Path Parameter
@@ -144,6 +178,17 @@ func GetOneStudentHandler(w http.ResponseWriter, r *http.Request) {
 
 // PutStudentHandler PUT /students/{id}
 func PutStudentHandler(w http.ResponseWriter, r *http.Request) {
+	_, err := utils.AuthorizeUser(
+		r.Context().Value(utils.ContextString("role")).(string),
+		"admin",
+		// "manager",
+		// "exec",
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
 	idStr := r.PathValue("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -173,8 +218,19 @@ func PutStudentHandler(w http.ResponseWriter, r *http.Request) {
 
 // PatchStudentsHandler PATCH /students/
 func PatchStudentsHandler(w http.ResponseWriter, r *http.Request) {
+	_, err := utils.AuthorizeUser(
+		r.Context().Value(utils.ContextString("role")).(string),
+		"admin",
+		// "manager",
+		// "exec",
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
 	var updates []map[string]any
-	err := json.NewDecoder(r.Body).Decode(&updates)
+	err = json.NewDecoder(r.Body).Decode(&updates)
 	if err != nil {
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
@@ -192,6 +248,17 @@ func PatchStudentsHandler(w http.ResponseWriter, r *http.Request) {
 
 // PatchOneStudentHandler PATCH /students/{id}
 func PatchOneStudentHandler(w http.ResponseWriter, r *http.Request) {
+	_, err := utils.AuthorizeUser(
+		r.Context().Value(utils.ContextString("role")).(string),
+		"admin",
+		// "manager",
+		// "exec",
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
 	idStr := r.PathValue("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -221,6 +288,17 @@ func PatchOneStudentHandler(w http.ResponseWriter, r *http.Request) {
 
 // DeleteOneStudentHandler DELETE /students/{id}
 func DeleteOneStudentHandler(w http.ResponseWriter, r *http.Request) {
+	_, err := utils.AuthorizeUser(
+		r.Context().Value(utils.ContextString("role")).(string),
+		"admin",
+		// "manager",
+		// "exec",
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
 	idStr := r.PathValue("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -251,8 +329,19 @@ func DeleteOneStudentHandler(w http.ResponseWriter, r *http.Request) {
 
 // DeleteStudentsHandler DELETE /students/
 func DeleteStudentsHandler(w http.ResponseWriter, r *http.Request) {
+	_, err := utils.AuthorizeUser(
+		r.Context().Value(utils.ContextString("role")).(string),
+		"admin",
+		// "manager",
+		// "exec",
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
 	var ids []int
-	err := json.NewDecoder(r.Body).Decode(&ids)
+	err = json.NewDecoder(r.Body).Decode(&ids)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "Invalid request paylaod", http.StatusBadRequest)

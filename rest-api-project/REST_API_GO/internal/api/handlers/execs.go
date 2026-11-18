@@ -17,6 +17,17 @@ import (
 
 // AddExecsHandler POST /execs/
 func AddExecsHandler(w http.ResponseWriter, r *http.Request) {
+	_, err := utils.AuthorizeUser(
+		r.Context().Value(utils.ContextString("role")).(string),
+		"admin",
+		// "manager",
+		// "exec",
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
 	var newExecs []models.Exec
 	var rawExecs []map[string]any
 
@@ -95,6 +106,17 @@ func AddExecsHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetExecsHandler GET /execs/
 func GetExecsHandler(w http.ResponseWriter, r *http.Request) {
+	_, err := utils.AuthorizeUser(
+		r.Context().Value(utils.ContextString("role")).(string),
+		"admin",
+		"manager",
+		"exec",
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
 	var execs []models.Exec
 	page, limit := getPaginationParams(r)
 	execs, totalExecs, err := sqlconnect.GetExecsDBHandler(execs, r, page, limit)
@@ -124,6 +146,17 @@ func GetExecsHandler(w http.ResponseWriter, r *http.Request) {
 
 // GetOneExecHandler /execs/{id}
 func GetOneExecHandler(w http.ResponseWriter, r *http.Request) {
+	_, err := utils.AuthorizeUser(
+		r.Context().Value(utils.ContextString("role")).(string),
+		"admin",
+		"manager",
+		"exec",
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
 	idStr := r.PathValue("id")
 
 	// Handler Path Parameter
@@ -146,8 +179,19 @@ func GetOneExecHandler(w http.ResponseWriter, r *http.Request) {
 
 // PatchExecsHandler PATCH /execs/
 func PatchExecsHandler(w http.ResponseWriter, r *http.Request) {
+	_, err := utils.AuthorizeUser(
+		r.Context().Value(utils.ContextString("role")).(string),
+		"admin",
+		// "manager",
+		// "exec",
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
 	var updates []map[string]any
-	err := json.NewDecoder(r.Body).Decode(&updates)
+	err = json.NewDecoder(r.Body).Decode(&updates)
 	if err != nil {
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
@@ -165,6 +209,17 @@ func PatchExecsHandler(w http.ResponseWriter, r *http.Request) {
 
 // PatchOneExecHandler PATCH /execs/{id}
 func PatchOneExecHandler(w http.ResponseWriter, r *http.Request) {
+	_, err := utils.AuthorizeUser(
+		r.Context().Value(utils.ContextString("role")).(string),
+		"admin",
+		// "manager",
+		// "exec",
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
 	idStr := r.PathValue("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -194,6 +249,17 @@ func PatchOneExecHandler(w http.ResponseWriter, r *http.Request) {
 
 // DeleteOneExecHandler DELETE /execs/{id}
 func DeleteOneExecHandler(w http.ResponseWriter, r *http.Request) {
+	_, err := utils.AuthorizeUser(
+		r.Context().Value(utils.ContextString("role")).(string),
+		"admin",
+		// "manager",
+		// "exec",
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
 	idStr := r.PathValue("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {

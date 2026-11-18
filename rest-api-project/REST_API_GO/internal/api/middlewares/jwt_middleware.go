@@ -13,8 +13,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-type ContextString string
-
 func JWTMiddleware(next http.Handler) http.Handler {
 	fmt.Println("------------- JWT Middleware -------------")
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -59,11 +57,11 @@ func JWTMiddleware(next http.Handler) http.Handler {
 			http.Error(w, "Invalid JWT Token", http.StatusUnauthorized)
 		}
 
-		ctx := context.WithValue(r.Context(), ContextString("role"), claims["role"])
+		ctx := context.WithValue(r.Context(), utils.ContextString("role"), claims["role"])
 		// These 3 claims argument is from pkg/utils/jwt.go
-		ctx = context.WithValue(ctx, ContextString("expiresAt"), claims["exp"])
-		ctx = context.WithValue(ctx, ContextString("username"), claims["user"])
-		ctx = context.WithValue(ctx, ContextString("userID"), claims["uid"])
+		ctx = context.WithValue(ctx, utils.ContextString("expiresAt"), claims["exp"])
+		ctx = context.WithValue(ctx, utils.ContextString("username"), claims["user"])
+		ctx = context.WithValue(ctx, utils.ContextString("userID"), claims["uid"])
 
 		fmt.Println(ctx)
 
