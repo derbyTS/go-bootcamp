@@ -14,11 +14,15 @@ import (
 	"restapi/pkg/utils"
 )
 
-func GetTeachersDBHandler(teachers []models.Teacher, r *http.Request) ([]models.Teacher, error) {
+func GetTeachersDBHandler(
+	teachers []models.Teacher,
+	r *http.Request,
+	page, limit int,
+) ([]models.Teacher, int, error) {
 	db, err := ConnectDB()
 	if err != nil {
 		// http.Error(w, "Error connecting to database", http.StatusInternalServerError)
-		return nil, utils.ErrorHandler(err, "Error connecting to database")
+		return nil, 0, utils.ErrorHandler(err, "Error connecting to database")
 	}
 
 	defer db.Close()
@@ -37,6 +41,14 @@ func GetTeachersDBHandler(teachers []models.Teacher, r *http.Request) ([]models.
 		args,
 	) // Do not copy a non-zero Builder. https://go.dev/doc/effective_go?utm_source=chatgpt.com#pointers_vs_values
 
+	// Pagination
+	offset := (page - 1) * limit
+	_, err = query.WriteString(" LIMIT ? OFFSET ?")
+	if err != nil {
+		return nil, 0, utils.ErrorHandler(err, "Error in database")
+	}
+	args = append(args, limit, offset)
+
 	utils.AddSorting(r, &query)
 
 	// rows, err := db.Query(query, args...)
@@ -45,7 +57,7 @@ func GetTeachersDBHandler(teachers []models.Teacher, r *http.Request) ([]models.
 	if err != nil {
 		fmt.Println(err)
 		// http.Error(w, "Database query error", http.StatusInternalServerError)
-		return nil, utils.ErrorHandler(err, "Database query error")
+		return nil, 0, utils.ErrorHandler(err, "Database query error")
 	}
 
 	defer rows.Close()
@@ -63,20 +75,27 @@ func GetTeachersDBHandler(teachers []models.Teacher, r *http.Request) ([]models.
 		if err != nil {
 			fmt.Println(err)
 			// http.Error(w, "Error Scanning database results", http.StatusInternalServerError)
-			return nil, utils.ErrorHandler(err, "Error Scanning database results")
+			return nil, 0, utils.ErrorHandler(err, "Error Scanning database results")
 		}
 		// Added recommend by LLM to remove Diagnostics: 1. sql.Rows "rows" is used in Next loop at line 89 without final check of rows.Err() [default] in `rows, err := db.Query(query, args...)`
 
 		if err := rows.Err(); err != nil {
 			fmt.Println("Error iterating rows:", err)
 			// http.Error(w, "Error reading database results", http.StatusInternalServerError)
-			return nil, utils.ErrorHandler(err, "Error reading database results")
+			return nil, 0, utils.ErrorHandler(err, "Error reading database results")
 		}
 
 		teachers = append(teachers, teacher)
 
 	}
-	return teachers, nil
+	var totalTeachers int
+	err = db.QueryRow("SELECT COUNT(*) FROM teachers").Scan(&totalTeachers)
+	if err := rows.Err(); err != nil {
+		utils.ErrorHandler(err, "")
+		totalTeachers = 0
+	}
+
+	return teachers, totalTeachers, nil
 }
 
 func GetTeachersDBHandlerByID(id int) (models.Teacher, error) {

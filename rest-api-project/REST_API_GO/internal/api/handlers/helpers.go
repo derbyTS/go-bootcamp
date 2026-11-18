@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"errors"
+	"net/http"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"restapi/pkg/utils"
@@ -33,4 +35,18 @@ func GetFieldNames(model any) []string {
 		fields = append(fields, fieldToAdd)
 	}
 	return fields
+}
+
+func getPaginationParams(r *http.Request) (int, int) {
+	page, err := strconv.Atoi(r.URL.Query().Get("page"))
+	if err != nil {
+		page = 1
+	}
+
+	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
+	if err != nil {
+		limit = 10
+	}
+
+	return page, limit
 }

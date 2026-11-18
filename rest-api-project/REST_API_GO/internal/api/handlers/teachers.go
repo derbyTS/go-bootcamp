@@ -94,7 +94,8 @@ func AddTeachersHandler(w http.ResponseWriter, r *http.Request) {
 // GetTeachersHandler GET /teachers/
 func GetTeachersHandler(w http.ResponseWriter, r *http.Request) {
 	var teachers []models.Teacher
-	teachers, err := sqlconnect.GetTeachersDBHandler(teachers, r)
+	page, limit := getPaginationParams(r)
+	teachers, totalTeachers, err := sqlconnect.GetTeachersDBHandler(teachers, r, page, limit)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -102,13 +103,17 @@ func GetTeachersHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := struct {
-		Status string           `json:"status"`
-		Count  int              `json:"count"`
-		Data   []models.Teacher `json:"data"`
+		Status   string           `json:"status"`
+		Count    int              `json:"count"`
+		Page     int              `json:"page"`
+		PageSize int              `json:"page_size"`
+		Data     []models.Teacher `json:"data"`
 	}{
-		Status: "Success",
-		Count:  len(teachers),
-		Data:   teachers,
+		Status:   "Success",
+		Count:    totalTeachers,
+		Page:     page,
+		PageSize: limit,
+		Data:     teachers,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

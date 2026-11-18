@@ -14,19 +14,26 @@ import (
 	"restapi/pkg/utils"
 )
 
-func GetStudentsDBHandler(students []models.Student, r *http.Request) ([]models.Student, error) {
+func GetStudentsDBHandler(
+	students []models.Student,
+	r *http.Request,
+	page, limit int,
+) ([]models.Student, int, error) {
 	db, err := ConnectDB()
 	if err != nil {
 		// http.Error(w, "Error connecting to database", http.StatusInternalServerError)
-		return nil, utils.ErrorHandler(err, "Error connecting to database")
+		return nil, 0, utils.ErrorHandler(err, "Error connecting to database")
 	}
 
 	defer db.Close()
 	// query := "SELECT id, first_name, last_name, email, class, subject FROM students WHERE 1=1"
 	var query strings.Builder
-	query.WriteString(
+	_, err = query.WriteString(
 		"SELECT id, first_name, last_name, email, class FROM students WHERE 1=1",
 	)
+	if err != nil {
+		return nil, 0, utils.ErrorHandler(err, "Error in database")
+	}
 
 	// var args []interface{}
 	var args []any
@@ -35,17 +42,24 @@ func GetStudentsDBHandler(students []models.Student, r *http.Request) ([]models.
 		r,
 		&query,
 		args,
-	) // Do not copy a non-zero Builder. https://go.dev/doc/effective_go?utm_source=chatgpt.com#pointers_vs_values
+	) // Do not copy a non-zero Builder. https://go.dev/doc/effective_go?#pointers_vs_values
+
+	// Pagination
+	offset := (page - 1) * limit
+	_, err = query.WriteString(" LIMIT ? OFFSET ?")
+	if err != nil {
+		return nil, 0, utils.ErrorHandler(err, "Error in database")
+	}
+	args = append(args, limit, offset)
 
 	utils.AddSorting(r, &query)
 
 	// rows, err := db.Query(query, args...)
-	// fmt.Println(query.String())
 	rows, err := db.Query(query.String(), args...)
 	if err != nil {
 		fmt.Println(err)
 		// http.Error(w, "Database query error", http.StatusInternalServerError)
-		return nil, utils.ErrorHandler(err, "Database query error")
+		return nil, 0, utils.ErrorHandler(err, "Database query error")
 	}
 
 	defer rows.Close()
@@ -62,20 +76,26 @@ func GetStudentsDBHandler(students []models.Student, r *http.Request) ([]models.
 		if err != nil {
 			fmt.Println(err)
 			// http.Error(w, "Error Scanning database results", http.StatusInternalServerError)
-			return nil, utils.ErrorHandler(err, "Error Scanning database results")
+			return nil, 0, utils.ErrorHandler(err, "Error Scanning database results")
 		}
 		// Added recommend by LLM to remove Diagnostics: 1. sql.Rows "rows" is used in Next loop at line 89 without final check of rows.Err() [default] in `rows, err := db.Query(query, args...)`
 
 		if err := rows.Err(); err != nil {
 			fmt.Println("Error iterating rows:", err)
 			// http.Error(w, "Error reading database results", http.StatusInternalServerError)
-			return nil, utils.ErrorHandler(err, "Error reading database results")
+			return nil, 0, utils.ErrorHandler(err, "Error reading database results")
 		}
 
 		students = append(students, student)
 
 	}
-	return students, nil
+	var totalStudents int
+	err = db.QueryRow("SELECT COUNT(*) FROM students").Scan(&totalStudents)
+	if err := rows.Err(); err != nil {
+		utils.ErrorHandler(err, "")
+		totalStudents = 0
+	}
+	return students, totalStudents, nil
 }
 
 func GetStudentsDBHandlerByID(id int) (models.Student, error) {

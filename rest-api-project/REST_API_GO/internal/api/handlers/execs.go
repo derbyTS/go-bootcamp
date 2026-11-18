@@ -96,7 +96,8 @@ func AddExecsHandler(w http.ResponseWriter, r *http.Request) {
 // GetExecsHandler GET /execs/
 func GetExecsHandler(w http.ResponseWriter, r *http.Request) {
 	var execs []models.Exec
-	execs, err := sqlconnect.GetExecsDBHandler(execs, r)
+	page, limit := getPaginationParams(r)
+	execs, totalExecs, err := sqlconnect.GetExecsDBHandler(execs, r, page, limit)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -104,13 +105,17 @@ func GetExecsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := struct {
-		Status string        `json:"status"`
-		Count  int           `json:"count"`
-		Data   []models.Exec `json:"data"`
+		Status   string        `json:"status"`
+		Count    int           `json:"count"`
+		Page     int           `json:"page"`
+		PageSize int           `json:"page_size"`
+		Data     []models.Exec `json:"data"`
 	}{
-		Status: "Success",
-		Count:  len(execs),
-		Data:   execs,
+		Status:   "Success",
+		Count:    totalExecs,
+		Page:     page,
+		PageSize: limit,
+		Data:     execs,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -405,7 +410,8 @@ func ResetPasswordHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
-	// TODO data validation
+
+	// Data validation
 	if req.NewPassword != req.ConfirmPassword {
 		http.Error(w, "Password not match", http.StatusBadRequest)
 		return

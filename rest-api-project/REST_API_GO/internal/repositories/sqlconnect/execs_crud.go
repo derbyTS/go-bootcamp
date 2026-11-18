@@ -21,11 +21,15 @@ import (
 	"github.com/go-mail/mail/v2"
 )
 
-func GetExecsDBHandler(execs []models.Exec, r *http.Request) ([]models.Exec, error) {
+func GetExecsDBHandler(
+	execs []models.Exec,
+	r *http.Request,
+	page, limit int,
+) ([]models.Exec, int, error) {
 	db, err := ConnectDB()
 	if err != nil {
 		// http.Error(w, "Error connecting to database", http.StatusInternalServerError)
-		return nil, utils.ErrorHandler(err, "Error connecting to database")
+		return nil, 0, utils.ErrorHandler(err, "Error connecting to database")
 	}
 
 	defer db.Close()
@@ -43,6 +47,14 @@ func GetExecsDBHandler(execs []models.Exec, r *http.Request) ([]models.Exec, err
 		args,
 	) // Do not copy a non-zero Builder. https://go.dev/doc/effective_go?utm_source=chatgpt.com#pointers_vs_values
 
+	// Pagination
+	offset := (page - 1) * limit
+	_, err = query.WriteString(" LIMIT ? OFFSET ?")
+	if err != nil {
+		return nil, 0, utils.ErrorHandler(err, "Error in database")
+	}
+	args = append(args, limit, offset)
+
 	utils.AddSorting(r, &query)
 
 	// rows, err := db.Query(query, args...)
@@ -51,7 +63,7 @@ func GetExecsDBHandler(execs []models.Exec, r *http.Request) ([]models.Exec, err
 	if err != nil {
 		fmt.Println(err)
 		// http.Error(w, "Database query error", http.StatusInternalServerError)
-		return nil, utils.ErrorHandler(err, "Database query error")
+		return nil, 0, utils.ErrorHandler(err, "Database query error")
 	}
 
 	defer rows.Close()
@@ -71,20 +83,27 @@ func GetExecsDBHandler(execs []models.Exec, r *http.Request) ([]models.Exec, err
 		if err != nil {
 			fmt.Println(err)
 			// http.Error(w, "Error Scanning database results", http.StatusInternalServerError)
-			return nil, utils.ErrorHandler(err, "Error Scanning database results")
+			return nil, 0, utils.ErrorHandler(err, "Error Scanning database results")
 		}
 		// Added recommend by LLM to remove Diagnostics: 1. sql.Rows "rows" is used in Next loop at line 89 without final check of rows.Err() [default] in `rows, err := db.Query(query, args...)`
 
 		if err := rows.Err(); err != nil {
 			fmt.Println("Error iterating rows:", err)
 			// http.Error(w, "Error reading database results", http.StatusInternalServerError)
-			return nil, utils.ErrorHandler(err, "Error reading database results")
+			return nil, 0, utils.ErrorHandler(err, "Error reading database results")
 		}
 
 		execs = append(execs, exec)
 
 	}
-	return execs, nil
+	var totalExecs int
+	err = db.QueryRow("SELECT COUNT(*) FROM execs").Scan(&totalExecs)
+	if err := rows.Err(); err != nil {
+		utils.ErrorHandler(err, "")
+		totalExecs = 0
+	}
+
+	return execs, totalExecs, nil
 }
 
 func GetExecsDBHandlerByID(id int) (models.Exec, error) {
