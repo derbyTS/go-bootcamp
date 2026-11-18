@@ -65,13 +65,14 @@ func main() {
 	// 	mw.Cors,
 	// )
 
-	jwtMiddleware := mw.MiddlwaresExcludePaths(
-		mw.JWTMiddleware,
-		"/execs/login",
-		"/execs/forgotpassword",
-		"/execs/resetpassword/reset/",
-	)
-	secureMux := jwtMiddleware(mw.SecurityHeaders(router))
+	// jwtMiddleware := mw.MiddlwaresExcludePaths(
+	// 	mw.JWTMiddleware,
+	// 	"/execs/login",
+	// 	"/execs/forgotpassword",
+	// 	"/execs/resetpassword/reset/",
+	// )
+	// secureMux := jwtMiddleware(mw.SecurityHeaders(router))
+	secureMux := mw.XSSMiddleware(router)
 
 	server := &http.Server{
 		Addr:      port,
