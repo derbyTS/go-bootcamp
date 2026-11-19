@@ -7,9 +7,9 @@ import (
 )
 
 func SecurityHeaders(next http.Handler) http.Handler {
-	fmt.Println("Security Headers Limiter Middleware .....")
+	fmt.Println("------------- Security Headers Limiter Middleware -------------")
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("Security Headers Middleware .....")
+		fmt.Println("------------- Security Headers Middleware -------------")
 		w.Header().Set("X-DNS-Prefetch-Control", "off")
 		w.Header().Set("X-Frame-Options", "DENY")
 		w.Header().Set("X-XSS-Protection", "1; mode=block")
@@ -27,7 +27,7 @@ func SecurityHeaders(next http.Handler) http.Handler {
 		w.Header().Set("Permissions-Policy", "geolocation=(self), microphone=()")
 
 		next.ServeHTTP(w, r)
-		fmt.Println("Security Headers Middleware sent.....")
+		fmt.Println("------------- Security Headers Middleware sent -------------")
 	})
 }
 

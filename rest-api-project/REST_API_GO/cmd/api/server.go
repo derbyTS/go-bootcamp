@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	// "time"
 
@@ -39,14 +40,14 @@ func main() {
 
 	router := router.MainRouter()
 
-	// rl := mw.NewRateLimiter(5, time.Minute)
-	//
-	// hppOPtions := mw.HppOptions{
-	// 	CheckQuery:                  true,
-	// 	CheckBody:                   true,
-	// 	CheckBodyOnlyForContentType: "application/x-www.form-urlencoded",
-	// 	Whitelist:                   []string{"sortBy", "sortOrder", "name", "age", "class"},
-	// }
+	rl := mw.NewRateLimiter(5, time.Minute)
+
+	hppOPtions := mw.HppOptions{
+		CheckQuery:                  true,
+		CheckBody:                   true,
+		CheckBodyOnlyForContentType: "application/x-www.form-urlencoded",
+		Whitelist:                   []string{"sortBy", "sortOrder", "name", "age", "class"},
+	}
 
 	// secureMux := mw.Cors(
 	// 	rl.Throttle(
@@ -55,15 +56,6 @@ func main() {
 	// 				mw.Compression(
 	// 					mw.Hpp(hppOPtions)(mux)))),
 	// 	))
-	// secureMux := utils.ApplyMiddlewares(
-	// 	mux,
-	// 	mw.Hpp(hppOPtions),
-	// 	mw.Compression,
-	// 	mw.SecurityHeaders,
-	// 	mw.ResponseTimeMiddleware,
-	// 	rl.Throttle,
-	// 	mw.Cors,
-	// )
 
 	jwtMiddleware := mw.MiddlwaresExcludePaths(
 		mw.JWTMiddleware,
@@ -71,7 +63,18 @@ func main() {
 		"/execs/forgotpassword",
 		"/execs/resetpassword/reset/",
 	)
-	secureMux := jwtMiddleware(mw.SecurityHeaders(router))
+	secureMux := utils.ApplyMiddlewares(
+		router,
+		mw.SecurityHeaders,
+		mw.Compression,
+		mw.Hpp(hppOPtions),
+		mw.XSSMiddleware,
+		jwtMiddleware,
+		mw.ResponseTimeMiddleware,
+		rl.Throttle,
+		mw.Cors,
+	)
+	// secureMux := jwtMiddleware(mw.SecurityHeaders(router))
 	// secureMux := mw.XSSMiddleware(router)
 
 	server := &http.Server{

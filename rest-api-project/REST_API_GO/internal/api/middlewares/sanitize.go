@@ -16,9 +16,9 @@ import (
 )
 
 func XSSMiddleware(next http.Handler) http.Handler {
-	fmt.Println("***********Initializing XSSMiddleware")
+	fmt.Println("------------- Initializing XSSMiddleware -------------")
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("XSSMiddleware Run")
+		fmt.Println("------------- XSSMiddleware Run -------------")
 
 		// Clean the URL Path
 		sanitizedPath, err := clean(r.URL.Path)
@@ -132,7 +132,7 @@ func XSSMiddleware(next http.Handler) http.Handler {
 		}
 
 		next.ServeHTTP(w, r)
-		fmt.Println("Sending response from XSSMiddleware")
+		fmt.Println("------------- Sending response from XSSMiddleware -------------")
 	})
 }
 
