@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/tls"
+	"embed"
 	"fmt"
 	"log"
 	"net/http"
@@ -12,30 +13,65 @@ import (
 
 	mw "restapi/internal/api/middlewares"
 	"restapi/internal/api/router"
-	"restapi/internal/repositories/sqlconnect"
 	"restapi/pkg/utils"
 
 	"github.com/joho/godotenv"
 )
 
-func main() {
-	err := godotenv.Load()
+//go:embed .env
+var envFile embed.FS
+
+func loadEnvFromEmbeddedFile() {
+	content, err := envFile.ReadFile(".env")
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatalf("Error reading .env file: %v", err)
 	}
 
-	_, err = sqlconnect.ConnectDB()
+	// Create a temp file to load env vars
+	tempfile, err := os.CreateTemp("", ".env")
 	if err != nil {
-		utils.ErrorHandler(err, "")
-		return
+		log.Fatalf("Error creating temp file: %v", err)
 	}
+	defer os.Remove(tempfile.Name())
+
+	// Write content of the embedded .env file to the file
+	_, err = tempfile.Write(content)
+	if err != nil {
+		log.Fatalf("Error creating temp file: %v", err)
+	}
+
+	err = tempfile.Close()
+	if err != nil {
+		log.Fatalf("Error closing temp file: %v", err)
+	}
+
+	// Load env variables
+	err = godotenv.Load(tempfile.Name())
+	if err != nil {
+		log.Fatalf("Error loading temp file: %v", err)
+	}
+}
+
+func main() {
+	// This use in development only
+	// err := godotenv.Load()
+	// if err != nil {
+	// 	log.Fatalln(err)
+	// }
+
+	// Load the varialbes form embedded .env file
+	loadEnvFromEmbeddedFile()
+
+	fmt.Println("Environment variable CERT_FILE:", os.Getenv("CERT_FILE"))
+
 	port := os.Getenv("SERVER_PORT")
 
-	cert := "cert.pem"
-	key := "key.pem"
+	cert := os.Getenv("CERT_FILE")
+	key := os.Getenv("KEY_FILE")
 
 	tlsConfig := &tls.Config{
-		MinVersion: tls.VersionTLS12,
+		// MinVersion: tls.VersionTLS12,
+		MinVersion: tls.VersionTLS10,
 	}
 
 	router := router.MainRouter()
@@ -84,7 +120,7 @@ func main() {
 	}
 
 	fmt.Println("Server is running on: ", port)
-	err = server.ListenAndServeTLS(cert, key)
+	err := server.ListenAndServeTLS(cert, key)
 	if err != nil {
 		log.Fatalln(err)
 	}
