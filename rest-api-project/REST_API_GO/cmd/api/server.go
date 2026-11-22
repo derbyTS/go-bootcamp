@@ -62,12 +62,12 @@ func main() {
 	// Load the varialbes form embedded .env file
 	loadEnvFromEmbeddedFile()
 
-	// fmt.Println("Environment variable CERT_FILE:", os.Getenv("CERT_FILE"))
+	fmt.Println("Environment variable CERT_FILE:", os.Getenv("CERT_FILE"))
 
 	port := os.Getenv("SERVER_PORT")
 
-	// cert := os.Getenv("CERT_FILE")
-	// key := os.Getenv("KEY_FILE")
+	cert := os.Getenv("CERT_FILE")
+	key := os.Getenv("KEY_FILE")
 
 	tlsConfig := &tls.Config{
 		// MinVersion: tls.VersionTLS12,
@@ -128,7 +128,6 @@ func main() {
 	}
 
 	fmt.Println("Server is running on: ", port)
-	// err := server.ListenAndServeTLS(cert, key)
 	err := server.ListenAndServeTLS(cert, key)
 	if err != nil {
 		log.Fatalln(err)
