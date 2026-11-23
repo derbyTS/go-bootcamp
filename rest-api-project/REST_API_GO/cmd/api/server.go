@@ -9,10 +9,9 @@ import (
 	"os"
 	"time"
 
-	// "time"
-
 	mw "restapi/internal/api/middlewares"
 	"restapi/internal/api/router"
+	"restapi/internal/repositories/sqlconnect"
 	"restapi/pkg/utils"
 
 	"github.com/joho/godotenv"
@@ -61,6 +60,11 @@ func main() {
 
 	// Load the varialbes form embedded .env file
 	loadEnvFromEmbeddedFile()
+	db, err := sqlconnect.ConnectDB()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
 
 	fmt.Println("Environment variable CERT_FILE:", os.Getenv("CERT_FILE"))
 
@@ -128,7 +132,7 @@ func main() {
 	}
 
 	fmt.Println("Server is running on: ", port)
-	err := server.ListenAndServeTLS(cert, key)
+	err = server.ListenAndServeTLS(cert, key)
 	if err != nil {
 		log.Fatalln(err)
 	}
