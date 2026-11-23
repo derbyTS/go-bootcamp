@@ -82,7 +82,7 @@ func AddExecsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	addedExecs, err := sqlconnect.AddExecsDBHandler(newExecs)
+	addedExecs, err := sqlconnect.AddExecsDBHandler(sqlconnect.DB, newExecs)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -119,7 +119,7 @@ func GetExecsHandler(w http.ResponseWriter, r *http.Request) {
 
 	var execs []models.Exec
 	page, limit := getPaginationParams(r)
-	execs, totalExecs, err := sqlconnect.GetExecsDBHandler(execs, r, page, limit)
+	execs, totalExecs, err := sqlconnect.GetExecsDBHandler(sqlconnect.DB, execs, r, page, limit)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -166,7 +166,7 @@ func GetOneExecHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	exec, err := sqlconnect.GetExecsDBHandlerByID(id)
+	exec, err := sqlconnect.GetExecsDBHandlerByID(sqlconnect.DB, id)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -197,7 +197,7 @@ func PatchExecsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = sqlconnect.PatchExecsDBHandler(updates)
+	err = sqlconnect.PatchExecsDBHandler(sqlconnect.DB, updates)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -236,7 +236,7 @@ func PatchOneExecHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedExec, err := sqlconnect.PatchOneExecDBHandler(id, updates)
+	updatedExec, err := sqlconnect.PatchOneExecDBHandler(sqlconnect.DB, id, updates)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -268,7 +268,7 @@ func DeleteOneExecHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = sqlconnect.DeleteOneExecDBHandler(id)
+	err = sqlconnect.DeleteOneExecDBHandler(sqlconnect.DB, id)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -304,7 +304,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if the user exist
-	user, err := sqlconnect.GetUserByUsername(req.Username)
+	user, err := sqlconnect.GetUserByUsername(sqlconnect.DB, req.Username)
 	if err != nil {
 		http.Error(w, "User not found", http.StatusBadRequest)
 		return
@@ -409,7 +409,7 @@ func UpdatePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Instructor return boolean instead of token but he just _,err I just create two option just uncomment if you choose to return token or not
-	err = sqlconnect.UpdatePasswordInDb(userID, req.CurrentPassword, req.NewPassword)
+	err = sqlconnect.UpdatePasswordInDb(sqlconnect.DB, userID, req.CurrentPassword, req.NewPassword)
 	// token, err := sqlconnect.UpdatePasswordInDb(userID, req.CurrentPassword, req.NewPassword)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -453,7 +453,7 @@ func ForgotPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = sqlconnect.ForgotPasswordDbHandler(req.Email)
+	err = sqlconnect.ForgotPasswordDbHandler(sqlconnect.DB, req.Email)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -483,7 +483,7 @@ func ResetPasswordHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = sqlconnect.ResetPasswordHandlerDb(token, req.NewPassword)
+	err = sqlconnect.ResetPasswordHandlerDb(sqlconnect.DB, token, req.NewPassword)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

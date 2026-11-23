@@ -15,17 +15,18 @@ import (
 )
 
 func GetTeachersDBHandler(
+	db *sql.DB,
 	teachers []models.Teacher,
 	r *http.Request,
 	page, limit int,
 ) ([]models.Teacher, int, error) {
-	db, err := ConnectDB()
-	if err != nil {
-		// http.Error(w, "Error connecting to database", http.StatusInternalServerError)
-		return nil, 0, utils.ErrorHandler(err, "Error connecting to database")
-	}
-
-	defer db.Close()
+	// db, err := ConnectDB()
+	// if err != nil {
+	// 	// http.Error(w, "Error connecting to database", http.StatusInternalServerError)
+	// 	return nil, 0, utils.ErrorHandler(err, "Error connecting to database")
+	// }
+	//
+	// defer db.Close()
 	// query := "SELECT id, first_name, last_name, email, class, subject FROM teachers WHERE 1=1"
 	var query strings.Builder
 	query.WriteString(
@@ -43,7 +44,7 @@ func GetTeachersDBHandler(
 
 	// Pagination
 	offset := (page - 1) * limit
-	_, err = query.WriteString(" LIMIT ? OFFSET ?")
+	_, err := query.WriteString(" LIMIT ? OFFSET ?")
 	if err != nil {
 		return nil, 0, utils.ErrorHandler(err, "Error in database")
 	}
@@ -98,17 +99,17 @@ func GetTeachersDBHandler(
 	return teachers, totalTeachers, nil
 }
 
-func GetTeachersDBHandlerByID(id int) (models.Teacher, error) {
-	db, err := ConnectDB()
-	if err != nil {
-		// http.Error(w, "Error connecting to database", http.StatusInternalServerError)
-		return models.Teacher{}, utils.ErrorHandler(err, "Error connecting to database")
-	}
-
-	defer db.Close()
+func GetTeachersDBHandlerByID(db *sql.DB, id int) (models.Teacher, error) {
+	// db, err := ConnectDB()
+	// if err != nil {
+	// 	// http.Error(w, "Error connecting to database", http.StatusInternalServerError)
+	// 	return models.Teacher{}, utils.ErrorHandler(err, "Error connecting to database")
+	// }
+	//
+	// defer db.Close()
 
 	var teacher models.Teacher
-	err = db.QueryRow("SELECT id, first_name, last_name, email, class, subject FROM teachers WHERE ID = ? ", id).
+	err := db.QueryRow("SELECT id, first_name, last_name, email, class, subject FROM teachers WHERE ID = ? ", id).
 		Scan(&teacher.ID, &teacher.FirstName, &teacher.LastName, &teacher.Email, &teacher.Class, &teacher.Subject)
 
 	if err == sql.ErrNoRows {
@@ -122,13 +123,13 @@ func GetTeachersDBHandlerByID(id int) (models.Teacher, error) {
 	return teacher, nil
 }
 
-func AddTeachersDBHandler(newTeachers []models.Teacher) ([]models.Teacher, error) {
-	db, err := ConnectDB()
-	if err != nil {
-		// http.Error(w, "Error connecting to database", http.StatusInternalServerError)
-		return nil, utils.ErrorHandler(err, "Error connecting to database")
-	}
-	defer db.Close()
+func AddTeachersDBHandler(db *sql.DB, newTeachers []models.Teacher) ([]models.Teacher, error) {
+	// db, err := ConnectDB()
+	// if err != nil {
+	// 	// http.Error(w, "Error connecting to database", http.StatusInternalServerError)
+	// 	return nil, utils.ErrorHandler(err, "Error connecting to database")
+	// }
+	// defer db.Close()
 
 	// stmt, err := db.Prepare(
 	// 	"INSERT INTO teachers (first_name, last_name, email, class, subject) VALUES(?,?,?,?,?);")
@@ -163,17 +164,17 @@ func AddTeachersDBHandler(newTeachers []models.Teacher) ([]models.Teacher, error
 	return addedTeachers, nil
 }
 
-func PutTeacherDBHandler(id int, updateTeacher models.Teacher) (models.Teacher, error) {
-	db, err := ConnectDB()
-	if err != nil {
-		log.Println(err)
-		// http.Error(w, "Problem connecting to db", http.StatusInternalServerError)
-		return models.Teacher{}, utils.ErrorHandler(err, "Problem connecting to db")
-	}
-	defer db.Close()
+func PutTeacherDBHandler(db *sql.DB, id int, updateTeacher models.Teacher) (models.Teacher, error) {
+	// db, err := ConnectDB()
+	// if err != nil {
+	// 	log.Println(err)
+	// 	// http.Error(w, "Problem connecting to db", http.StatusInternalServerError)
+	// 	return models.Teacher{}, utils.ErrorHandler(err, "Problem connecting to db")
+	// }
+	// defer db.Close()
 
 	var existing models.Teacher
-	err = db.QueryRow("SELECT id, first_name, last_name, email, class, subject FROM teachers WHERE ID = ? ", id).
+	err := db.QueryRow("SELECT id, first_name, last_name, email, class, subject FROM teachers WHERE ID = ? ", id).
 		Scan(&existing.ID, &existing.FirstName, &existing.LastName, &existing.Email, &existing.Class, &existing.Subject)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -201,14 +202,14 @@ func PutTeacherDBHandler(id int, updateTeacher models.Teacher) (models.Teacher, 
 	return updateTeacher, nil
 }
 
-func PatchTeachersDBHandler(updates []map[string]any) error {
-	db, err := ConnectDB()
-	if err != nil {
-		log.Println(err)
-		// http.Error(w, "Problem connecting to db", http.StatusInternalServerError)
-		return utils.ErrorHandler(err, "Teacher not found")
-	}
-	defer db.Close()
+func PatchTeachersDBHandler(db *sql.DB, updates []map[string]any) error {
+	// db, err := ConnectDB()
+	// if err != nil {
+	// 	log.Println(err)
+	// 	// http.Error(w, "Problem connecting to db", http.StatusInternalServerError)
+	// 	return utils.ErrorHandler(err, "Teacher not found")
+	// }
+	// defer db.Close()
 
 	tx, err := db.Begin()
 	if err != nil {
@@ -294,19 +295,20 @@ func PatchTeachersDBHandler(updates []map[string]any) error {
 }
 
 func PatchOneTeacherDBHandler(
+	db *sql.DB,
 	id int,
 	updates map[string]any,
 ) (models.Teacher, error) {
-	db, err := ConnectDB()
-	if err != nil {
-		log.Println(err)
-		// http.Error(w, "Problem connecting to db", http.StatusInternalServerError)
-		return models.Teacher{}, utils.ErrorHandler(err, "Problem connecting to db")
-	}
-	defer db.Close()
+	// db, err := ConnectDB()
+	// if err != nil {
+	// 	log.Println(err)
+	// 	// http.Error(w, "Problem connecting to db", http.StatusInternalServerError)
+	// 	return models.Teacher{}, utils.ErrorHandler(err, "Problem connecting to db")
+	// }
+	// defer db.Close()
 
 	var existing models.Teacher
-	err = db.QueryRow("SELECT id, first_name, last_name, email, class, subject FROM teachers WHERE ID = ? ", id).
+	err := db.QueryRow("SELECT id, first_name, last_name, email, class, subject FROM teachers WHERE ID = ? ", id).
 		Scan(&existing.ID, &existing.FirstName, &existing.LastName, &existing.Email, &existing.Class, &existing.Subject)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -362,14 +364,14 @@ func PatchOneTeacherDBHandler(
 	return existing, nil
 }
 
-func DeleteOneTeacherDBHandler(id int) error {
-	db, err := ConnectDB()
-	if err != nil {
-		log.Println(err)
-		// http.Error(w, "Problem connecting to db", http.StatusInternalServerError)
-		return utils.ErrorHandler(err, "Problem connecting to db")
-	}
-	defer db.Close()
+func DeleteOneTeacherDBHandler(db *sql.DB, id int) error {
+	// db, err := ConnectDB()
+	// if err != nil {
+	// 	log.Println(err)
+	// 	// http.Error(w, "Problem connecting to db", http.StatusInternalServerError)
+	// 	return utils.ErrorHandler(err, "Problem connecting to db")
+	// }
+	// defer db.Close()
 
 	result, err := db.Exec("DELETE FROM teachers where id = ?", id)
 	if err != nil {
@@ -394,14 +396,14 @@ func DeleteOneTeacherDBHandler(id int) error {
 	return nil
 }
 
-func DeleteTeachersDBHandler(ids []int) ([]int, error) {
-	db, err := ConnectDB()
-	if err != nil {
-		log.Println(err)
-		// http.Error(w, "Problem connecting to db", http.StatusInternalServerError)
-		return nil, utils.ErrorHandler(err, "Problem connecting to db")
-	}
-	defer db.Close()
+func DeleteTeachersDBHandler(db *sql.DB, ids []int) ([]int, error) {
+	// db, err := ConnectDB()
+	// if err != nil {
+	// 	log.Println(err)
+	// 	// http.Error(w, "Problem connecting to db", http.StatusInternalServerError)
+	// 	return nil, utils.ErrorHandler(err, "Problem connecting to db")
+	// }
+	// defer db.Close()
 	tx, err := db.Begin()
 	if err != nil {
 		log.Println(err)
@@ -460,16 +462,17 @@ func DeleteTeachersDBHandler(ids []int) ([]int, error) {
 }
 
 func GetStudentsByTeacherIDFromDb(
+	db *sql.DB,
 	teacherID string,
 	students []models.Student,
 ) ([]models.Student, error) {
-	db, err := ConnectDB()
-	if err != nil {
-		log.Println(err)
-		return nil, utils.ErrorHandler(err, "Problem connecting to db")
-	}
-
-	defer db.Close()
+	// db, err := ConnectDB()
+	// if err != nil {
+	// 	log.Println(err)
+	// 	return nil, utils.ErrorHandler(err, "Problem connecting to db")
+	// }
+	//
+	// defer db.Close()
 
 	query := `select id, first_name, last_name, email, class from students where class = (select class from teachers where id = ?)`
 
@@ -504,18 +507,18 @@ func GetStudentsByTeacherIDFromDb(
 	return students, nil
 }
 
-func GetStudentsCountByTeacherIDFromDb(teacherID string) (int, error) {
+func GetStudentsCountByTeacherIDFromDb(db *sql.DB, teacherID string) (int, error) {
 	var studentCount int
-	db, err := ConnectDB()
-	if err != nil {
-		return 0, utils.ErrorHandler(err, "Problem connecting to db")
-	}
-
-	defer db.Close()
+	// db, err := ConnectDB()
+	// if err != nil {
+	// 	return 0, utils.ErrorHandler(err, "Problem connecting to db")
+	// }
+	//
+	// defer db.Close()
 
 	query := `SELECT COUNT(*) FROM students WHERE class = (SELECT class from teachers WHERE id = ?)`
 
-	err = db.QueryRow(query, teacherID).Scan(&studentCount)
+	err := db.QueryRow(query, teacherID).Scan(&studentCount)
 	if err != nil {
 		return 0, utils.ErrorHandler(err, "Problem query to db")
 	}

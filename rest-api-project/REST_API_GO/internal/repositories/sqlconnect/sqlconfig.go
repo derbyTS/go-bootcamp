@@ -5,9 +5,12 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 )
+
+var DB *sql.DB
 
 func ConnectDB() (*sql.DB, error) {
 	// fmt.Println("Trying to connect to Database")
@@ -31,6 +34,13 @@ func ConnectDB() (*sql.DB, error) {
 		return nil, fmt.Errorf("database ping failed: %w", err)
 	}
 
+	// Configure pool limits so connections stay open and are reused under load.
+	db.SetMaxOpenConns(25)
+	db.SetMaxIdleConns(25)
+	db.SetConnMaxLifetime(5 * time.Minute)
+	db.SetConnMaxIdleTime(1 * time.Minute)
+
 	// fmt.Println("Connected to DB..", dbName)
+	DB = db
 	return db, nil
 }

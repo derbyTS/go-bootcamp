@@ -81,7 +81,7 @@ func AddTeachersHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	addedTeachers, err := sqlconnect.AddTeachersDBHandler(newTeachers)
+	addedTeachers, err := sqlconnect.AddTeachersDBHandler(sqlconnect.DB, newTeachers)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -118,7 +118,13 @@ func GetTeachersHandler(w http.ResponseWriter, r *http.Request) {
 
 	var teachers []models.Teacher
 	page, limit := getPaginationParams(r)
-	teachers, totalTeachers, err := sqlconnect.GetTeachersDBHandler(teachers, r, page, limit)
+	teachers, totalTeachers, err := sqlconnect.GetTeachersDBHandler(
+		sqlconnect.DB,
+		teachers,
+		r,
+		page,
+		limit,
+	)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -165,7 +171,7 @@ func GetOneTeacherHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teacher, err := sqlconnect.GetTeachersDBHandlerByID(id)
+	teacher, err := sqlconnect.GetTeachersDBHandlerByID(sqlconnect.DB, id)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -205,7 +211,7 @@ func PutTeacherHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedTeacherFromDB, err := sqlconnect.PutTeacherDBHandler(id, updateTeacher)
+	updatedTeacherFromDB, err := sqlconnect.PutTeacherDBHandler(sqlconnect.DB, id, updateTeacher)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -236,7 +242,7 @@ func PatchTeachersHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = sqlconnect.PatchTeachersDBHandler(updates)
+	err = sqlconnect.PatchTeachersDBHandler(sqlconnect.DB, updates)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -275,7 +281,7 @@ func PatchOneTeacherHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedTeacher, err := sqlconnect.PatchOneTeacherDBHandler(id, updates)
+	updatedTeacher, err := sqlconnect.PatchOneTeacherDBHandler(sqlconnect.DB, id, updates)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -307,7 +313,7 @@ func DeleteOneTeacherHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = sqlconnect.DeleteOneTeacherDBHandler(id)
+	err = sqlconnect.DeleteOneTeacherDBHandler(sqlconnect.DB, id)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -348,7 +354,7 @@ func DeleteTeachersHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	deletedIDs, err := sqlconnect.DeleteTeachersDBHandler(ids)
+	deletedIDs, err := sqlconnect.DeleteTeachersDBHandler(sqlconnect.DB, ids)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -378,7 +384,7 @@ func GetStudentsByTeacherID(w http.ResponseWriter, r *http.Request) {
 	teacherID := r.PathValue("id")
 	var students []models.Student
 
-	students, err = sqlconnect.GetStudentsByTeacherIDFromDb(teacherID, students)
+	students, err = sqlconnect.GetStudentsByTeacherIDFromDb(sqlconnect.DB, teacherID, students)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -415,7 +421,7 @@ func GetStudentsCountByTeacherID(w http.ResponseWriter, r *http.Request) {
 
 	var studentCount int
 
-	studentCount, err = sqlconnect.GetStudentsCountByTeacherIDFromDb(teacherID)
+	studentCount, err = sqlconnect.GetStudentsCountByTeacherIDFromDb(sqlconnect.DB, teacherID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

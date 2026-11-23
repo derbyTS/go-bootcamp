@@ -22,17 +22,18 @@ import (
 )
 
 func GetExecsDBHandler(
+	db *sql.DB,
 	execs []models.Exec,
 	r *http.Request,
 	page, limit int,
 ) ([]models.Exec, int, error) {
-	db, err := ConnectDB()
-	if err != nil {
-		// http.Error(w, "Error connecting to database", http.StatusInternalServerError)
-		return nil, 0, utils.ErrorHandler(err, "Error connecting to database")
-	}
-
-	defer db.Close()
+	// db, err := ConnectDB()
+	// if err != nil {
+	// 	// http.Error(w, "Error connecting to database", http.StatusInternalServerError)
+	// 	return nil, 0, utils.ErrorHandler(err, "Error connecting to database")
+	// }
+	//
+	// defer db.Close()
 	var query strings.Builder
 	query.WriteString(
 		"SELECT id, first_name, last_name, email, username, user_created_at, inactive_status, role FROM execs WHERE 1=1",
@@ -49,7 +50,7 @@ func GetExecsDBHandler(
 
 	// Pagination
 	offset := (page - 1) * limit
-	_, err = query.WriteString(" LIMIT ? OFFSET ?")
+	_, err := query.WriteString(" LIMIT ? OFFSET ?")
 	if err != nil {
 		return nil, 0, utils.ErrorHandler(err, "Error in database")
 	}
@@ -106,17 +107,17 @@ func GetExecsDBHandler(
 	return execs, totalExecs, nil
 }
 
-func GetExecsDBHandlerByID(id int) (models.Exec, error) {
-	db, err := ConnectDB()
-	if err != nil {
-		// http.Error(w, "Error connecting to database", http.StatusInternalServerError)
-		return models.Exec{}, utils.ErrorHandler(err, "Error connecting to database")
-	}
-
-	defer db.Close()
+func GetExecsDBHandlerByID(db *sql.DB, id int) (models.Exec, error) {
+	// db, err := ConnectDB()
+	// if err != nil {
+	// 	// http.Error(w, "Error connecting to database", http.StatusInternalServerError)
+	// 	return models.Exec{}, utils.ErrorHandler(err, "Error connecting to database")
+	// }
+	//
+	// defer db.Close()
 
 	var exec models.Exec
-	err = db.QueryRow("SELECT id, first_name, last_name, email, username, user_created_at, inactive_status, role FROM execs WHERE ID = ? ", id).
+	err := db.QueryRow("SELECT id, first_name, last_name, email, username, user_created_at, inactive_status, role FROM execs WHERE ID = ? ", id).
 		Scan(&exec.ID, &exec.FirstName, &exec.LastName, &exec.Email, &exec.Username, &exec.UserCreatedAt, &exec.InactiveStatus, &exec.Role)
 
 	if err == sql.ErrNoRows {
@@ -130,13 +131,13 @@ func GetExecsDBHandlerByID(id int) (models.Exec, error) {
 	return exec, nil
 }
 
-func AddExecsDBHandler(newExecs []models.Exec) ([]models.Exec, error) {
-	db, err := ConnectDB()
-	if err != nil {
-		// http.Error(w, "Error connecting to database", http.StatusInternalServerError)
-		return nil, utils.ErrorHandler(err, "Error connecting to database")
-	}
-	defer db.Close()
+func AddExecsDBHandler(db *sql.DB, newExecs []models.Exec) ([]models.Exec, error) {
+	// db, err := ConnectDB()
+	// if err != nil {
+	// 	// http.Error(w, "Error connecting to database", http.StatusInternalServerError)
+	// 	return nil, utils.ErrorHandler(err, "Error connecting to database")
+	// }
+	// defer db.Close()
 
 	stmt, err := db.Prepare(utils.GenerateInsertQuery("execs", models.Exec{}))
 	if err != nil {
@@ -173,14 +174,14 @@ func AddExecsDBHandler(newExecs []models.Exec) ([]models.Exec, error) {
 	return addedExecs, nil
 }
 
-func PatchExecsDBHandler(updates []map[string]any) error {
-	db, err := ConnectDB()
-	if err != nil {
-		log.Println(err)
-		// http.Error(w, "Problem connecting to db", http.StatusInternalServerError)
-		return utils.ErrorHandler(err, "Exec not found")
-	}
-	defer db.Close()
+func PatchExecsDBHandler(db *sql.DB, updates []map[string]any) error {
+	// db, err := ConnectDB()
+	// if err != nil {
+	// 	log.Println(err)
+	// 	// http.Error(w, "Problem connecting to db", http.StatusInternalServerError)
+	// 	return utils.ErrorHandler(err, "Exec not found")
+	// }
+	// defer db.Close()
 
 	tx, err := db.Begin()
 	if err != nil {
@@ -266,6 +267,7 @@ func PatchExecsDBHandler(updates []map[string]any) error {
 }
 
 func PatchOneExecDBHandler(
+	db *sql.DB,
 	id int,
 	updates map[string]any,
 ) (models.Exec, error) {
@@ -319,14 +321,14 @@ func PatchOneExecDBHandler(
 	return existing, nil
 }
 
-func DeleteOneExecDBHandler(id int) error {
-	db, err := ConnectDB()
-	if err != nil {
-		log.Println(err)
-		// http.Error(w, "Problem connecting to db", http.StatusInternalServerError)
-		return utils.ErrorHandler(err, "Problem connecting to db")
-	}
-	defer db.Close()
+func DeleteOneExecDBHandler(db *sql.DB, id int) error {
+	// db, err := ConnectDB()
+	// if err != nil {
+	// 	log.Println(err)
+	// 	// http.Error(w, "Problem connecting to db", http.StatusInternalServerError)
+	// 	return utils.ErrorHandler(err, "Problem connecting to db")
+	// }
+	// defer db.Close()
 
 	result, err := db.Exec("DELETE FROM execs where id = ?", id)
 	if err != nil {
@@ -351,15 +353,15 @@ func DeleteOneExecDBHandler(id int) error {
 	return nil
 }
 
-func GetUserByUsername(username string) (models.Exec, error) {
-	db, err := ConnectDB()
-	if err != nil {
-		return models.Exec{}, utils.ErrorHandler(err, "Error connecting to database")
-	}
-	defer db.Close()
+func GetUserByUsername(db *sql.DB, username string) (models.Exec, error) {
+	// db, err := ConnectDB()
+	// if err != nil {
+	// 	return models.Exec{}, utils.ErrorHandler(err, "Error connecting to database")
+	// }
+	// defer db.Close()
 
 	user := models.Exec{}
-	err = db.QueryRow(`SELECT id, first_name, last_name, email, username, password, inactive_status, role FROM execs where username = ?`, username).
+	err := db.QueryRow(`SELECT id, first_name, last_name, email, username, password, inactive_status, role FROM execs where username = ?`, username).
 		Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.Username, &user.Password, &user.InactiveStatus, &user.Role)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -371,23 +373,24 @@ func GetUserByUsername(username string) (models.Exec, error) {
 }
 
 func UpdatePasswordInDb(
+	db *sql.DB,
 	userID int,
 	currentPassword string,
 	newPassword string,
 ) error {
 	// ) (string, error) {
-	db, err := ConnectDB()
-	if err != nil {
-		return utils.ErrorHandler(err, "Error connecting to database")
-		// return "", utils.ErrorHandler(err, "Error connecting to database")
-	}
-	defer db.Close()
+	// db, err := ConnectDB()
+	// if err != nil {
+	// 	return utils.ErrorHandler(err, "Error connecting to database")
+	// 	// return "", utils.ErrorHandler(err, "Error connecting to database")
+	// }
+	// defer db.Close()
 
 	var username string
 	var userPassword string
 	var userRole string
 
-	err = db.QueryRow("SELECT username, password, role FROM execs WHERE id = ?", userID).
+	err := db.QueryRow("SELECT username, password, role FROM execs WHERE id = ?", userID).
 		Scan(&username, &userPassword, &userRole)
 	if err != nil {
 		return utils.ErrorHandler(err, "User not found")
@@ -429,15 +432,15 @@ func UpdatePasswordInDb(
 	// return token, nil
 }
 
-func ForgotPasswordDbHandler(email string) error {
-	db, err := ConnectDB()
-	if err != nil {
-		return utils.ErrorHandler(err, "Error connecting db")
-	}
-	defer db.Close()
+func ForgotPasswordDbHandler(db *sql.DB, email string) error {
+	// db, err := ConnectDB()
+	// if err != nil {
+	// 	return utils.ErrorHandler(err, "Error connecting db")
+	// }
+	// defer db.Close()
 
 	var exec models.Exec
-	err = db.QueryRow("SELECT id FROM execs where email = ?", email).Scan(&exec.ID)
+	err := db.QueryRow("SELECT id FROM execs where email = ?", email).Scan(&exec.ID)
 	if err != nil {
 		return utils.ErrorHandler(err, "User not found")
 	}
@@ -496,7 +499,7 @@ func ForgotPasswordDbHandler(email string) error {
 	return nil
 }
 
-func ResetPasswordHandlerDb(token, newPassword string) error {
+func ResetPasswordHandlerDb(db *sql.DB, token, newPassword string) error {
 	decodedInputTokenByte, err := hex.DecodeString(token)
 	if err != nil {
 		return utils.ErrorHandler(err, "Internal Error")
@@ -505,11 +508,11 @@ func ResetPasswordHandlerDb(token, newPassword string) error {
 	hashedToken := sha256.Sum256(decodedInputTokenByte)
 	hashedTokenString := hex.EncodeToString(hashedToken[:])
 
-	db, err := ConnectDB()
-	if err != nil {
-		return utils.ErrorHandler(err, "Error connecting db")
-	}
-	defer db.Close()
+	// db, err := ConnectDB()
+	// if err != nil {
+	// 	return utils.ErrorHandler(err, "Error connecting db")
+	// }
+	// defer db.Close()
 
 	var user models.Exec
 	query := "SELECT id, email FROM execs where password_reset_token = ? AND password_token_expire > ?"
